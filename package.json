@@ -1,12 +1,18 @@
 {
   "name": "card-jitsu",
   "version": "0.0.0",
+  "main": "main.js",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
+
+    "electron": "electron .",
+    "electron-build": "ng build && electron .",
+    "electron-pack": "electron-packager . --platform=win32 --arch=x64 --out=dist --overwrite",
+    
     "serve:ssr:card-jitsu": "node dist/card-jitsu/server/server.mjs"
   },
   "private": true,
