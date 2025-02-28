@@ -1,0 +1,35 @@
+@use '../partials/colors' as colors;
+
+body {
+  --background-primary--muted: #{colors.$background-primary--muted};
+  --background-primary: #{colors.$background-primary};
+  --background-primary--light: #{colors.$background-primary--light};
+
+  --background-secondary--muted: #{colors.$background-secondary--muted};
+  --background-secondary: #{colors.$background-secondary};
+  --background-secondary--light: #{colors.$background-secondary--light};
+
+  --background-tertiary--muted: #{colors.$background-tertiary--muted};
+  --background-tertiary: #{colors.$background-tertiary};
+  --background-tertiary--light: #{colors.$background-tertiary--light};
+
+  --background-quaternary--muted: #{colors.$background-quaternary--muted};
+  --background-quaternary: #{colors.$background-quaternary};
+  --background-quaternary--light: #{colors.$background-quaternary--light};
+
+  --text-primary: #{colors.$text-primary};
+  --text-secondary: #{colors.$text-secondary};
+  --text-muted: #{colors.$text-muted};
+  --text-link: #{colors.$text-link};
+
+  --text-success: #{colors.$text-success};
+  --text-danger: #{colors.$text-danger};
+
+  --brand--light: #{colors.$brand--light};
+  --brand: #{colors.$brand};
+  --brand--muted: #{colors.$brand--muted};
+
+  --brand-alt--light: #{colors.$brand-alt--light};
+  --brand-alt: #{colors.$brand-alt};
+  --brand-alt--muted: #{colors.$brand-alt--muted};
+}

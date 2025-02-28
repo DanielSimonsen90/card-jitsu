@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { ElementalType } from "../models/types";
+import { ElementalType } from "./ElementalService.types";
 
 /**
  * ElementalService is in charge of determining which elemental type wins a duel
@@ -8,7 +8,7 @@ import { ElementalType } from "../models/types";
  * - Providing a valid elemental type to be used in the game
  */
 @Injectable({ providedIn: 'root' })
-export default class ElementalService {
+export class ElementalService {
   private readonly types: Array<ElementalType> = ['fire', 'water', 'ice'];
 
   /**
@@ -54,3 +54,5 @@ export default class ElementalService {
     return this.types.random();
   }
 }
+
+export default ElementalService;

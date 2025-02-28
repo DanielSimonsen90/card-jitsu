@@ -1,0 +1,36 @@
+@use '../../../styles/partials/mixins' as mixins;
+
+.site-header {
+  display: flex;
+  justify-content: center; /* Center the site-name */
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid var(--background-secondary);
+  position: relative; /* Make the site-header a positioning context */
+  width: 100%;
+
+  .site-name {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    span {
+      line-height: 2rem;
+    }
+
+    span:first-child {
+      @include mixins.letter-border(var(--brand));
+    }
+
+    span:last-child {
+      @include mixins.letter-border(var(--brand-alt--light));
+    }
+  }
+
+  app-logout {
+    position: absolute;
+    right: 5vw;
+  }
+}

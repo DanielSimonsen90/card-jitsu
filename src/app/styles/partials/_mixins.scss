@@ -1,0 +1,10 @@
+// Create a mixin that generates a text shadow as a border around the text.
+// The mixin should be called "letter-border" and should accept a single argument, $color, which should be the color of the border.
+
+@mixin letter-border($color) {
+  text-shadow: 
+    -1px -1px 0 $color,  
+    1px -1px 0 $color,
+    -1px 1px 0 $color,
+    1px 1px 0 $color;
+}

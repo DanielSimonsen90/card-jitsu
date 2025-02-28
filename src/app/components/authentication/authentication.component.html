@@ -1,0 +1,11 @@
+<div id="authentication-wrapper">
+  <div *ngIf="isAuthenticated; then main else login"></div>
+  
+  <ng-template #main>
+    <app-main></app-main>
+  </ng-template>
+  
+  <ng-template #login>
+    <app-login></app-login>
+  </ng-template>
+</div>

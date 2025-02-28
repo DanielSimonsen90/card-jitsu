@@ -1,0 +1,7 @@
+<form (ngSubmit)="onSubmit()">
+  <div class="input-group">
+    <label for="username">Username</label>
+    <input id="username" type="text" [(ngModel)]="username" name="username" required placeholder="Enter your username..." />
+  </div>
+  <button type="submit" class="brand primary">Create User</button>
+</form>
