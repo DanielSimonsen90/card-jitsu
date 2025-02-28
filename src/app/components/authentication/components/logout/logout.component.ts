@@ -1,6 +1,6 @@
 import { UserStore } from '@/stores';
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
 
 @Component({
   standalone: true,
@@ -10,18 +10,17 @@ import { Component, inject, OnInit } from '@angular/core';
   styleUrl: 'logout.component.scss'
 })
 
-export default class LogoutComponent implements OnInit {
-  private _userStore = inject(UserStore);
+export default class LogoutComponent {
+  private userStore = inject(UserStore);
   
-  public username: string | undefined;
-  public shouldRender = false;
-
-  public ngOnInit() {
-    this.username = this._userStore.username();
-    this.shouldRender = this._userStore.hasValidUser();
+  public get username() {
+    return this.userStore.state.username;
+  }
+  public get shouldRender() {
+    return this.userStore.hasValidUser();
   }
 
   public logout() {
-    this._userStore.delete();
+    this.userStore.delete();
   }
 }

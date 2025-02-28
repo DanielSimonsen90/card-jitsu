@@ -3,6 +3,7 @@ import { UserStore } from '@/stores';
 import { StorageService } from '@/services/StorageService';
 import AuthenticationComponent from "../authentication/authentication.component";
 import SiteHeaderComponent from "../shared/header/header.component";
+import { TestComponent } from "../shared/test/test.component";
 
 @Component({
   selector: 'app-root',

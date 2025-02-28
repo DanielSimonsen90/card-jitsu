@@ -23,20 +23,19 @@ export default class AuthenticationComponent implements OnInit {
   private userStore = inject(UserStore);
   
   constructor() {
-    Logger.info('OnInit complete');
-  }
-
-  ngOnInit(): void {
-    this.isAuthenticated = this.userStore.hasValidUser();
-
     effect(() => {
-      const username = this.userStore.username(); // Read signal value
+      const username = this.userStore.state.username; // Read signal value
       Logger.info('Username updated', username);
-
-      this.isAuthenticated = this.userStore.hasValidUser();
-      Logger.info('this.isAuthenticated', this.isAuthenticated);
     });
   }
 
-  public isAuthenticated = false;
+  ngOnInit(): void {
+    this.userStore.load();
+  }
+
+  public get isAuthenticated() {
+    const value = this.userStore.hasValidUser();
+    Logger.info('this.isAuthenticated', value, this.userStore.state.username);
+    return value;
+  }
 }

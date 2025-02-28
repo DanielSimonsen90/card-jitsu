@@ -1,7 +1,7 @@
 import Logger from "./Logger";
 
 export default class LoggerService {
-  private static createLogger(tag: string) {
+  public static createLogger(tag: string) {
     return new Logger(tag, instance => {
       this._loggers[tag] = instance;
     });

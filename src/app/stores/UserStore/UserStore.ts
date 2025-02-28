@@ -1,107 +1,74 @@
-import LoggerService from "@/services/LoggerService";
+import { computed, Injectable, signal } from "@angular/core";
+import { BaseStore, StoreProperty } from "../BaseStore";
+import User from "./User";
 import { StorageService } from "@/services/StorageService";
-import { patchState, signalStore, withHooks, withMethods, withProps, withState } from "@ngrx/signals";
+import { StoreProperties } from "../StoreProperty";
 
-export const UserStore = (function getUserStore(){
-  const tag = 'User';
-  const Logger = LoggerService.createStoreLogger(tag);
-  const storageService = new StorageService();
+/**
+ * # UserStore
+ * 
+ * This store is responsible for managing the current user's data, including:
+ * * Username
+ * * Wins
+ * * Losses
+ */
 
-  return signalStore(
-    withState(() => ({
-      username: '',
-      wins: 0,
-      losses: 0,
-    })),
-    withProps(() => ({
-      _defaultState: {},
-      _loaded: false,
-    })),
-    withMethods(store => ({
-      toJSON() {
-        return JSON.stringify(Object.keys(store).reduce((acc, _key) => {
-          const key = _key as keyof typeof store;
-          if (_key.startsWith('_')) return acc;
-          else if (typeof store[key] === 'function') return acc;
-          else return { ...acc, [key]: store[key] };
-        }, {}));
-      },
-      save() {
-        Logger.info('Requested save');
+type State = {
+  username: string;
+  wins: number;
+  losses: number;
+}
 
-        const json = this.toJSON();
-        storageService.setItem('User', json);
+@Injectable({ providedIn: 'root' })
+@StoreProperties<State>({
+  username: '',
+  wins: 0,
+  losses: 0,
+})
+export class UserStore extends BaseStore<State> {
+  constructor(storageService: StorageService) {
+    super(storageService, 'User');
+  }
 
-        Logger.info('Saved JSON to storage', {
-          storageName: 'User',
-          json,
-        });
-      },
-      load() {
-        Logger.info('Requested load');
+  public get user(): User {
+    const user = {
+      username: this.state.username,
+      wins: this.state.wins,
+      losses: this.state.losses,
+    };
 
-        const json = storageService.getItem('User');
-        if (!json) {
-          Logger.info('No data found in storage');
-          return;
-        }
+    this.Logger.info('User value requested', user);
 
-        const data = JSON.parse(json);
+    return user;
+  }
 
-        Logger.info('Loaded JSON from storage', {
-          storageName: 'User',
-          json,
-          data,
-        });
+  public getWinPercentage = computed(() => {
+    const winPercentage = this.state.wins / (this.state.wins + this.state.losses) * 100;
 
-        Object.assign(store, data);
-      },
-      delete() {
-        Logger.groupCollapsed('Requested delete');
-        storageService.removeItem(tag);
-        Logger.info('Deleted data from storage', tag);
+    this.Logger.info('Win percentage calculated:', winPercentage);
 
-        if (store._defaultState.isEmpty()) {
-          Logger.warn('No default state found, skipping');
-          return;
-        }
+    return winPercentage;
+  });
 
-        Logger.info('Resetting to default state', store._defaultState);
-        Object.assign(store, store._defaultState);
-      },
+  public hasValidUser = computed(() => this.state.username !== undefined && this.state.username !== '');
 
-      getWinPercentage() {
-        const winPercentage = store.wins() / (store.wins() + store.losses()) * 100;
+  public createUser(username: string) {
+    this.Logger.info('Creating user with username:', username);
 
-        Logger.info('Win percentage calculated:', winPercentage);
+    this.state.username = username;
+    this.Logger.info('SAVING', this.state);
+    this.save();
+  }
 
-        return winPercentage;
-      },
-      hasValidUser() {
-        return !!store.username();
-      },
-      createUser(username: string) {
-        Logger.info('Creating user with username:', username);
-
-        patchState(store, { username });
-        this.save();
-      },
-    })),
-    withHooks(store => ({
-      onInit() {
-        Logger.info('OnInit');
-        Logger.info('Loading store data...');
-        store.load();
-        Logger.info('Store data loaded', store);
-      },
-      onDestroy() {
-        Logger.info('OnDestroy');
-        Logger.info('Saving store data...');
-        store.save();
-        Logger.info('Store data saved', store);
-      }
-    }))
-  );
-})();
+  public toJSON() {
+    const { username, wins, losses } = this.state;
+    
+    return {
+      username,
+      wins,
+      losses,
+    }
+  }
+}
 
 export default UserStore;

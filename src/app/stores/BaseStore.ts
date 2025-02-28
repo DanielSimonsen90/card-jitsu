@@ -1,56 +1,35 @@
 import { StorageService } from "@/services/StorageService";
 import LoggerService from "@/services/LoggerService";
-import { BehaviorSubject } from "rxjs";
+import { WritableSignal } from "@angular/core";
+import { InjectStorePropertiesKey } from "./StoreProperty";
 
 export { default as StoreProperty } from './StoreProperty';
 
-export abstract class BaseStore<T> {
+export abstract class BaseStore<State extends object> {
   constructor(
     protected _storageService: StorageService,
     tag: string,
   ) {
     this.Logger = LoggerService.createStoreLogger(tag);
+
+    if (InjectStorePropertiesKey in this && typeof this[InjectStorePropertiesKey] === 'function') {
+      this.Logger.info('Injecting store properties', this);
+      this[InjectStorePropertiesKey]();
+    }
   }
 
-  public abstract get value(): T;
-  protected _defaultState: Partial<T> = {};
   protected readonly Logger: ReturnType<typeof LoggerService.createStoreLogger>;
-
-  public toJSON() {
-    const result = Object.keys(this).reduce((acc, key) => {
-      if (key === 'toJSON') return acc;
-      else if (typeof this[key as keyof this] === 'function') return acc;
-      else if (key.includes('$')) return acc;
-      else if (key[0] === key[0].toUpperCase()) return acc;
-
-      // TODO: BehaviorSubject should be a signal
-      if (key.startsWith('_') && this[key as keyof this] instanceof BehaviorSubject) {
-        const value = (this[key as keyof this] as BehaviorSubject<any>).value;
-        acc[key.substring(1)] = value;
-      } else if (key.startsWith('_')) {
-        return acc;
-      } else {
-        acc[key] = this[key as keyof this];
-      }
-
-      return acc;
-    }, {} as Record<string, any>);
-
-    this.Logger.info('JSON result', result);
-
-    return result;
-  }
+  public state = {} as State;
+  
+  public abstract toJSON(): object;
 
   public save() {
     this.Logger.groupCollapsed('Requested save');
 
-    const json = this.toJSON();
-    this._storageService.setItem(this.constructor.name, JSON.stringify(json));
+    const json = JSON.stringify(this.toJSON());
+    this._storageService.setItem(this.constructor.name, json);
 
-    this.Logger.info('Saved JSON to storage', {
-      storageName: this.constructor.name,
-      json,
-    }).groupEnd();
+    this.Logger.info('Saved JSON to storage', json).groupEnd();
   }
 
   private _loaded = false;
@@ -62,23 +41,29 @@ export abstract class BaseStore<T> {
     }
     this._loaded = true;
 
-    const json = this._storageService.getItem(this.constructor.name);
-    if (!json) {
+    const localStateJson = this._storageService.getItem(this.constructor.name);
+    if (!localStateJson) {
       this.Logger.info('No data found in storage', this).groupEnd();
       return;
     }
 
-    const data = JSON.parse(json);
-    this.Logger.info('Loaded data from storage', data);
+    const localState = JSON.parse(localStateJson);
+    this.Logger.info('Loaded data from storage', localState);
 
-    Object.keys(data).forEach(key => {
-      if (key in this) {
-        this[key as keyof this] = data[key];
+    Object.keys(localState).forEach(key => {
+      const state = this.state;
+
+      if (key in state) {
+        if (typeof state[key as keyof typeof state] !== typeof localState[key]) {
+          (state[key as keyof typeof state] as WritableSignal<any>).set(localState[key]);
+        } else {
+          state[key as keyof typeof state] = localState[key];
+        }
       } else {
         this.Logger.warn('Key not found in store', key);
       }
     });
-    
+
     this.Logger.info('Loading completed', this).groupEnd();
   }
   public delete() {
@@ -86,13 +71,45 @@ export abstract class BaseStore<T> {
     this._storageService.removeItem(this.constructor.name);
     this.Logger.info('Deleted data from storage', this.constructor.name);
 
-    if (this._defaultState.isEmpty()) {
-      this.Logger.warn('No default state found', this).groupEnd();
+    this.reset();
+    this.Logger.groupEnd();
+  }
+  public reset() {
+    this.Logger.groupCollapsed('Requested reset');
+
+    const defaultState = this.getDefaultState();
+    if (!defaultState) {
+      this.Logger.warn('No default state found, skipping');
       return;
     }
 
-    this.Logger.info('Resetting to default state', this._defaultState);
-    Object.assign(this, this._defaultState);
-    this.Logger.info('Delete completed', this).groupEnd();
+    Object.assign(this.state, defaultState);
+
+    this.Logger.info('Reset to default state', this).groupEnd();
+  }
+
+  public getDefaultState(): Partial<this> | null {
+    if ('_defaultState' in this) return this._defaultState as Partial<this>;
+
+    return Object.keys(this.state)
+      .filter(key => (
+        !key.startsWith('_') &&
+        typeof this[key as keyof this] !== 'function' &&
+        key[0].toUpperCase() !== key[0]
+      ))
+      .reduce((acc, _key) => {
+        const key = _key as keyof this;
+
+        acc[key] = (
+          Array.isArray(this[key]) ? [] : 
+          typeof this[key] === 'object' && !Array.isArray(this[key]) ? {} : 
+          typeof this[key] === 'string' ? '' :
+          typeof this[key] === 'number' ? 0 :
+          typeof this[key] === 'boolean' ? false :
+          null
+        );
+
+        return acc;
+      }, {} as Record<keyof this, any>) as Partial<this>;
   }
 }
