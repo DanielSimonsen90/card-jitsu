@@ -3,12 +3,8 @@ import { isPlatformBrowser } from '@angular/common';
 
 @Injectable({ providedIn: 'root' })
 export class StorageService {
-  private isBrowser: boolean;
+  private isBrowser: boolean = false;
   private serverStorage = new Map<string, string>(); // Server-side fallback
-
-  constructor(@Inject(PLATFORM_ID) private platformId: object) {
-    this.isBrowser = isPlatformBrowser(platformId);
-  }
 
   public setItem(key: string, value: string): void {
     if (this.isBrowser) {

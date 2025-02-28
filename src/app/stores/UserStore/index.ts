@@ -1,2 +1,2 @@
-export * from './UserStoreService';
+export * from './UserStore';
 export * from './User'
