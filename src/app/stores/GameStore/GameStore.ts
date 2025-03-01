@@ -171,6 +171,18 @@ export class GameStore extends BaseStore<State> {
       player
     }).groupEnd();
   }
+  protected resetPlayers() {
+    this.Logger.groupCollapsed('[PLAYER ACTION] resetPlayers');
+
+    this.players = this.players.map(player => ({
+      ...player,
+      activeCard: null,
+      cards: [],
+      wins: [],
+    }));
+
+    this.Logger.info('Reset players', this.players).groupEnd();
+  }
   public removePlayer(player: Player) {
     this.Logger.groupCollapsed('[PLAYER ACTION] removePlayer', player);
 
@@ -359,6 +371,14 @@ export class GameStore extends BaseStore<State> {
   // #endregion
 
   // #region Game Settings
+  protected resetGame(forceToIdle = false) {
+    this.resetPlayers();
+    this.state.aiPlayerNames = [];
+    this.state.lastWinner = null;
+
+    if (forceToIdle) this._gameState = 'idle';
+    if (this.timer.isActive) this.timer.stop();
+  }
   public setRoundTimer(seconds: number) {
     this.timer.setSeconds(seconds);
     this.Logger.info(`Updated round timer to ${seconds} seconds`, this.timer);

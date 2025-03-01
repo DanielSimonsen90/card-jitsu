@@ -4,5 +4,6 @@ import CreateEventHandler from "./_CreateEventHandler";
 const Logger = LoggerService.createGameEventLogger('finishGame');
 
 export default CreateEventHandler('finishGame', function (winner) {
-  Logger.warn('Not implemented');
+  this.resetGame();
+  Logger.info(`${winner?.name} has won the game!`);
 });
