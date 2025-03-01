@@ -5,7 +5,15 @@ declare global {
 }
 
 Array.prototype.random = function() {
-  return this[Math.floor(Math.random() * this.length)];
+  const getRandomIndex = () => Math.floor(Math.random() * this.length);
+  const randomIndex = (() => {
+    while (true) {
+      const index = getRandomIndex();
+      if (index >= 0 && index < this.length) return index;
+    }
+  })();
+
+  return this[randomIndex];
 };
 
 export {}

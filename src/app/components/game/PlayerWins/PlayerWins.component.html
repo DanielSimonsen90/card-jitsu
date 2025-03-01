@@ -1,0 +1,8 @@
+<ul class="player-wins">
+  <ul class="elemental-type" *ngFor="let elementalType of elementalTypes">
+    <li class="color" *ngFor="let color of wins[elementalType]">
+      <!-- TODO: Render element icon -->
+      <span [style.color]="color">{{ elementalType }}</span>
+    </li>
+  </ul>
+</ul>

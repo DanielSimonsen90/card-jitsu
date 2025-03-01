@@ -12,5 +12,21 @@
 </ng-template>
 
 <ng-template #game>
-  <player-deck />
+  <header>
+    <player-wins *ngFor="let opponent of opponents" [player]="opponent" />
+    <game-timer />
+    <player-wins [player]="currentPlayer" />
+  </header>
+
+  <section class="active-cards-container">
+    <ul class="active-cards">
+      <li *ngFor="let card of activeCards">
+        <gamecard [card]="card" [showContent]="shouldShowActiveCardContent" />
+      </li>
+    </ul>
+  </section>
+
+  <footer>
+    <player-deck />
+  </footer>
 </ng-template>

@@ -1,5 +1,8 @@
+import LoggerService from "@/services/LoggerService";
 import CreateEventHandler from "./_CreateEventHandler";
 
+const Logger = LoggerService.createGameEventLogger('finishGame');
+
 export default CreateEventHandler('finishGame', function (winner) {
-  throw new Error('Not implemented');
+  Logger.warn('Not implemented');
 });

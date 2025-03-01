@@ -2,12 +2,16 @@ import { Component, OnInit, Input } from '@angular/core';
 import { GameCard } from '@/services/CardService/CardService.types';
 import { GameStore } from '@/stores';
 import { Player } from '@/models/types';
+import { CommonModule } from '@angular/common';
 
 @Component({
   standalone: true,
-  imports: [],
   selector: 'gamecard',
-  templateUrl: 'GameCard.component.html'
+  templateUrl: 'GameCard.component.html',
+  styleUrl: 'GameCard.component.scss',
+  imports: [
+    CommonModule
+  ],
 })
 
 export class GameCardComponent {

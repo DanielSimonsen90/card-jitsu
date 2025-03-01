@@ -31,3 +31,7 @@ $brand--light: lighten($brand, 10%);
 $brand-alt--muted: rgba(186, 105, 0, $muted-alpha);
 $brand-alt: rgb(186, 105, 0);
 $brand-alt--light: lighten($brand-alt, 10%);
+
+$element-fire: hsl(19, 94%, 50%);
+$element-water: hsl(200, 100%, 41%);
+$element-ice: hsl(201, 81%, 83%);

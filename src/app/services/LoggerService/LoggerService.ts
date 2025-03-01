@@ -1,3 +1,4 @@
+import { Broadcast } from "../BroadcastService/BroadcastService.types";
 import Logger from "./Logger";
 
 export default class LoggerService {
@@ -13,7 +14,10 @@ export default class LoggerService {
   public static createStoreLogger(tag: string) {
     return this.createLogger(`${tag}Store`);
   }
-  
+  public static createGameEventLogger(tag: keyof Broadcast) {
+    return this.createLogger(`${tag}Event`);  
+  }
+
   private static _loggers: Record<string, Logger> = {};
   public static disable(tag?: string) {
     if (tag) this._loggers[tag].disable();

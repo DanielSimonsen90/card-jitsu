@@ -1,5 +1,6 @@
 import { Injectable } from "@angular/core";
 import { ElementalType } from "./ElementalService.types";
+import { GameWins } from "../CardService/CardService.types";
 
 /**
  * ElementalService is in charge of determining which elemental type wins a duel
@@ -52,6 +53,13 @@ export class ElementalService {
    */
   public getRandomType(): ElementalType {
     return this.types.random();
+  }
+
+  public sortGameWinsByElementalType(wins: GameWins): GameWins {
+    return this.types.reduce((acc, type) => {
+      if (wins[type]) acc[type] = wins[type];
+      return acc;
+    }, {} as GameWins);
   }
 }
 

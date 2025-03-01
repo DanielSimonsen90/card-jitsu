@@ -1,10 +1,14 @@
 <div class="game-card" 
-  [attr.data-color]="card.color" 
-  [attr.data-selected]="card.selected"
+  [attr.data-selected]="card.selected" 
+  [style.background-color]="card.color"
   (click)="onClick()"
 >
-  <p>{{ card.value }}</p>
+  <div *ngIf="showContent" class="game-card__content" 
+    [attr.data-type]="card.type"
+  >
+    <p>{{ card.value }}</p>
 
-  <!-- TODO: Render elemental type icon -->
-  <b>{{ card.type }}</b>
+    <!-- TODO: Render elemental type icon -->
+    <b>{{ card.type }}</b>
+  </div>
 </div>

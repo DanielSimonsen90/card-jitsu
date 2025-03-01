@@ -27,14 +27,20 @@ export default class Logger {
   }
 
   public group(...args: any[]) {
-    this.log('group', ...args);
+    // this.log('group', ...args);
+    this.log('info', ...args);
   }
   public groupCollapsed(...args: any[]) {
-    this.log('groupCollapsed', ...args);
+    // this.log('groupCollapsed', ...args);
+    this.log('info', ...args);
     return this;
   }
   public groupEnd() {
     this.log('groupEnd');
+    return this;
+  }
+  public trace(...args: any[]) {
+    this.log('trace', ...args);
     return this;
   }
 

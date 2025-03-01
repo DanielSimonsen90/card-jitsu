@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import ElementalService from "../ElementalService";
-import { Card, Color } from "./CardService.types";
+import { Card, Color, GameWins } from "./CardService.types";
 import { ElementalType } from "../ElementalService/ElementalService.types";
 
 const DEFAULT_DECK_SIZE = 5;
@@ -97,6 +97,35 @@ export default class CardService {
   }
   private determineWinnerByElementalType(a: Card, b: Card): Card {
     return this.elementalService.getHighestPrecedence(a.type, b.type) === a.type ? a : b;
+  }
+  // #endregion
+
+  // #region Uility functions
+  /**
+   * Sort wins by elements in a map of element -> count. 
+   * There must only be one of each color per element.
+   * @param cards Cards to sort
+   * @returns A map of unique elements with no duplicate colors
+   */
+  public getWinsFromCards(cards: Array<Card>): GameWins {
+    const gameWins = cards.reduce((acc, card) => {
+      const element = card.type;
+      if (!acc[element]) acc[element] = [];
+      // else if (acc[element].includes(card.color)) return acc;
+
+      acc[element].push(card.color);
+      return acc;
+    }, {} as GameWins)
+
+    return this.elementalService.sortGameWinsByElementalType(gameWins);
+  }
+
+  public isSameCard(a: Card, b: Card): boolean {
+    return (
+      a.value === b.value &&
+      a.type === b.type &&
+      a.color === b.color
+    )
   }
   // #endregion
 

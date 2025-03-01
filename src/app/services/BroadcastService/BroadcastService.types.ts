@@ -11,3 +11,5 @@ export type Broadcast = {
   
   message: [message: string, time: Date];
 };
+
+export type BroadcastEventCallback<TEvent extends keyof Broadcast> = (...args: Broadcast[TEvent]) => void;

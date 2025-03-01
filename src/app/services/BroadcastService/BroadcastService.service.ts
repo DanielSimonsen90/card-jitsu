@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { Subject, Subscription } from "rxjs";
-import { Broadcast, GameState } from "./BroadcastService.types";
+import { Broadcast, BroadcastEventCallback, GameState } from "./BroadcastService.types";
 
 /**
  * # BroadcastService
@@ -29,7 +29,7 @@ export class BroadcastService {
     subject.next(args);
   }
 
-  public on<TEvent extends keyof Broadcast>(key: TEvent, callback: (...args: Broadcast[TEvent]) => void): Subscription {
+  public on<TEvent extends keyof Broadcast>(key: TEvent, callback: BroadcastEventCallback<TEvent>): Subscription {
     const subject = this.broadcast[key];
     if (!subject) throw new Error(`Invalid key: ${key}`);
 

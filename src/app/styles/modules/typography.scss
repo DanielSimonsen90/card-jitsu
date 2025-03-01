@@ -51,7 +51,8 @@ p span:not(:first-of-type) {
 }
 
 p {
-  --margins: .5em;
+  // --margins: .5em;
+  --margins: 0;
   margin-block-start: var(--margins);
   margin-block-end: var(--margins);
 }

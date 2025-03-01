@@ -1,0 +1,46 @@
+.game-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1em;
+
+  --width: 5rem;
+  width: var(--width);
+  height: calc(var(--width) * 1.5);
+  padding: .6em;
+  border-radius: .5em;
+
+  background-color: var(--background-secondary);
+  filter: drop-shadow(0 0 .5em var(--background-secondary));
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: .25ch;
+
+    background-color: var(--background-secondary);
+    padding: 1em;
+    width: 50%;
+    height: 66%;
+    border-radius: .5em;
+
+    * {
+      text-align: center;
+    }
+  }
+}
+
+[data-type=fire] {
+  color: var(--element-fire);
+}
+
+[data-type=water] {
+  color: var(--element-water);
+}
+
+[data-type=ice] {
+  color: var(--element-ice);
+}
