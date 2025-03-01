@@ -40,11 +40,11 @@ export class GameStore extends BaseStore<State> {
     super(storageService, 'Game');
   }
 
-  protected get gameState() {
+  private get _gameState() {
     this.Logger.info('[GET] gameState', this.state.gameState);
     return this.state.gameState;
   }
-  protected set gameState(state: GameState) {
+  private set _gameState(state: GameState) {
     this.Logger.groupCollapsed('[SET] gameState', state);
     this.state.gameState = state;
 
@@ -53,7 +53,7 @@ export class GameStore extends BaseStore<State> {
     this.Logger.groupEnd();
   }
   public get isActive() {
-    const isActive = this.gameState !== 'idle' && this.gameState !== 'finish';
+    const isActive = this._gameState !== 'idle' && this._gameState !== 'finish';
     this.Logger.info('[GET] isActive', isActive);
     return isActive;
   }
@@ -71,12 +71,12 @@ export class GameStore extends BaseStore<State> {
     }
 
     this.Logger.info('Updating gameState to "deal".',);
-    this.gameState = 'deal';
+    this._gameState = 'deal';
     this.Logger.groupEnd();
   }
   public playCard(player: Player, cardIndex: number) {
     this.Logger.groupCollapsed('[ACTION] playCard', player, cardIndex);
-    if (this.gameState !== 'play') {
+    if (this._gameState !== 'play') {
       this.Logger.error('Cannot play card when not in play state').groupEnd();
       throw new Error('Cannot play card when not in play state');
     }
@@ -122,7 +122,7 @@ export class GameStore extends BaseStore<State> {
     this.Logger.info('Checking if ready to update gameState...');
     if (this.state.players.every(p => p.activeCard)) {
       this.Logger.groupCollapsed('Check returned true - updating gameState to "check"');
-      this.gameState = 'check';
+      this._gameState = 'check';
     } else {
       this.Logger.info(`Check returned false - gameState remains "${this.state.gameState}"`);
     }
@@ -174,7 +174,7 @@ export class GameStore extends BaseStore<State> {
     this.Logger.info('Dealt cards to players', this.state.players);
 
     this.Logger.info('Updating gameState to "play"');
-    this.gameState = 'play';
+    this._gameState = 'play';
     this.Logger.groupEnd();
   }
   protected startNewRound() {
@@ -269,11 +269,11 @@ export class GameStore extends BaseStore<State> {
 
       // Broadcast of game winner is handled in onGameStateChange, that later calls onFinishGame
       this.state.lastWinner = player;
-      this.gameState = 'finish';
+      this._gameState = 'finish';
     }
 
     this.Logger.info('No game winners found yet - updating gameState back to "play".').groupEnd();
-    this.gameState = 'play';
+    this._gameState = 'play';
   }
   // #endregion
 
