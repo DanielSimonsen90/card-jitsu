@@ -3,9 +3,9 @@ import LoggerService from "@/services/LoggerService";
 import { WritableSignal } from "@angular/core";
 import { InjectStorePropertiesKey } from "./StoreProperty";
 
-export { default as StoreProperty } from './StoreProperty';
+export { default as StoreProperties } from './StoreProperty';
 
-export abstract class BaseStore<State extends object> {
+export default abstract class BaseStore<State extends object> {
   constructor(
     protected _storageService: StorageService,
     tag: string,
@@ -13,7 +13,7 @@ export abstract class BaseStore<State extends object> {
     this.Logger = LoggerService.createStoreLogger(tag);
 
     if (InjectStorePropertiesKey in this && typeof this[InjectStorePropertiesKey] === 'function') {
-      this.Logger.info('Injecting store properties', this);
+      // this.Logger.info('Injecting store properties', this);
       this[InjectStorePropertiesKey]();
     }
   }

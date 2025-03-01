@@ -5,7 +5,7 @@ import LoginComponent from "./components/login";
 import { MainComponent } from "../main/main.component";
 import LoggerService from "@/services/LoggerService";
 
-const Logger = LoggerService.createComponentLogger('Authentication');
+const Logger = LoggerService.createComponentLogger('Authentication').disable();
 
 @Component({
   selector: 'app-authentication',

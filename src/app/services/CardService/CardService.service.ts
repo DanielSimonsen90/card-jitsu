@@ -1,6 +1,7 @@
 import { Injectable } from "@angular/core";
-import { Card, Color, ElementalType } from "../models/types";
-import ElementalService from "./ElementalService";
+import ElementalService from "../ElementalService";
+import { Card, Color } from "./CardService.types";
+import { ElementalType } from "../ElementalService/ElementalService.types";
 
 /**
  * CardService is in charge of generating and dealing cards for the players

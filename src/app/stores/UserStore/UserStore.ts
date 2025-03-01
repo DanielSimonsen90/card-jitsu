@@ -1,8 +1,7 @@
-import { computed, Injectable, signal } from "@angular/core";
-import { BaseStore, StoreProperty } from "../BaseStore";
+import { computed, Injectable } from "@angular/core";
+import BaseStore, { StoreProperties } from "../BaseStore";
 import User from "./User";
 import { StorageService } from "@/services/StorageService";
-import { StoreProperties } from "../StoreProperty";
 
 /**
  * # UserStore
@@ -28,6 +27,8 @@ type State = {
 export class UserStore extends BaseStore<State> {
   constructor(storageService: StorageService) {
     super(storageService, 'User');
+
+    this.Logger.disable();
   }
 
   public get user(): User {

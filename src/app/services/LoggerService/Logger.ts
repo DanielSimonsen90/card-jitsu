@@ -42,6 +42,7 @@ export default class Logger {
   public disable() {
     this.disabled = true;
     this.onChange(this);
+    return this;
   }
   public enable() {
     this.disabled = false;

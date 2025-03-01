@@ -6,7 +6,7 @@ export class StorageService {
   private isBrowser: boolean;
   private serverStorage = new Map<string, string>(); // Server-side fallback
 
-  constructor(@Inject(PLATFORM_ID) private platformId: object) {
+  constructor(@Inject(PLATFORM_ID) platformId: object) {
     this.isBrowser = isPlatformBrowser(platformId);
   }
 
