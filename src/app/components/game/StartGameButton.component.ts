@@ -1,3 +1,4 @@
+import { SITE_NAME } from '@/constants';
 import { Component, OnInit } from '@angular/core';
 
 @Component({
@@ -8,5 +9,5 @@ import { Component, OnInit } from '@angular/core';
 })
 
 export default class StartGameButtonComponent {
-  
+  public SITE_NAME = SITE_NAME;
 }

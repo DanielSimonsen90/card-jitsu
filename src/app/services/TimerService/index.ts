@@ -1,1 +1,1 @@
-export { default } from './TimerService';
+export * from './TimerService';

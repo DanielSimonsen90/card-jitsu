@@ -9,7 +9,7 @@ import { TimerCallback } from "./Timer.types";
  * Through public functions like `startTimer` and `stopTimer`, the timer can be controlled.
  * Additionally, register callback functions to be called when the timer finishes.
  */
-export default class TimerService {
+export class TimerService {
   public static createTimer(callback?: TimerCallback, seconds?: number) {
     return new Timer(callback, seconds);
   }
