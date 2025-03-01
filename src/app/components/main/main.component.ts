@@ -1,8 +1,9 @@
 import { BroadcastService, CardService, ElementalService } from '@/services/GameServices';
 import { GameStore } from '@/stores';
-import { Component, inject } from '@angular/core';
-import StartGameButtonComponent from '../game';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { AddAiButtonComponent, PlayerlistComponent, StartGameButtonComponent } from '../game';
 import { CommonModule } from '@angular/common';
+import { PlayerDeckComponent } from "../game/PlayerDeck/PlayerDeck.component";
 
 @Component({
   standalone: true,
@@ -15,18 +16,23 @@ import { CommonModule } from '@angular/common';
   ],
   imports: [
     CommonModule,
-    StartGameButtonComponent
-  ],
+    PlayerlistComponent,
+    StartGameButtonComponent,
+    PlayerDeckComponent
+],
 })
 
-export class MainComponent {
+export class MainComponent implements OnInit, OnDestroy {
   protected gameStore = inject(GameStore);
 
   public get isActive() {
     return this.gameStore.isActive;
   }
 
-  public onStartGameClick() {
-    this.gameStore.startGame();
+  public ngOnInit(): void {
+    this.gameStore.onInit();
+  }
+  public ngOnDestroy(): void {
+    this.gameStore.onDestroy();
   }
 }

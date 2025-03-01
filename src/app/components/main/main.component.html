@@ -1,9 +1,16 @@
 <div *ngIf="isActive; then game else lobby"></div>
 
-<ng-template #game>
-  <p>The game goes here...</p>
+<ng-template #lobby>
+  <div class="lobby">
+    <main>
+      <start-game-button />
+    </main>
+    <aside>
+      <playerlist />
+    </aside>
+  </div>
 </ng-template>
 
-<ng-template #lobby>
-  <start-game-button (click)="onStartGameClick()" />
+<ng-template #game>
+  <player-deck />
 </ng-template>

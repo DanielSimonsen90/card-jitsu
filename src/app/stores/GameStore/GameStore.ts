@@ -1,9 +1,13 @@
 import { Subscription } from "rxjs";
 import { Injectable } from "@angular/core";
 
-import { Player } from "@/models/types";
+import type { Player } from "@/models/types";
 
-import { GameState, WinState } from "@/services/BroadcastService/BroadcastService.types";
+import type { GameState, WinState } from "@/services/BroadcastService/BroadcastService.types";
+import type { Card, Color } from "@/services/CardService/CardService.types";
+import type { ElementalType } from "@/services/ElementalService/ElementalService.types";
+
+import { AiPlayerService } from "@/services/AiPlayerService";
 import { StorageService } from "@/services/StorageService";
 import { TimerService } from "@/services/TimerService";
 import { BroadcastService, CardService, ElementalService } from "@/services/GameServices";
@@ -11,9 +15,7 @@ import { BroadcastService, CardService, ElementalService } from "@/services/Game
 import BaseStore, { StoreState } from "../BaseStore";
 import { UserStore } from "../UserStore";
 
-import { onDeclareRoundWinner, onFinishGame, onPlayCard, onSendCard, onUpdateGameState } from './events';
-import { Color } from "@/services/CardService/CardService.types";
-import { ElementalType } from "@/services/ElementalService/ElementalService.types";
+import { onDeclareRoundWinner, onFinishGame, onPlayCard, onUpdateGameState } from './events';
 
 const DEFAULT_ROUND_DURATION_SECONDS = 30;
 
@@ -21,13 +23,15 @@ type State = {
   gameState: GameState;
   players: Array<Player>;
   lastWinner: Player | null;
+  aiPlayerNames: Array<string>;
 };
 
 @Injectable({ providedIn: 'root' })
 @StoreState<State>({
   gameState: 'idle',
   players: [],
-  lastWinner: null
+  lastWinner: null,
+  aiPlayerNames: [],
 })
 export class GameStore extends BaseStore<State> {
   constructor(
@@ -40,6 +44,13 @@ export class GameStore extends BaseStore<State> {
     super(storageService, 'Game');
   }
 
+  protected aiPlayerService = new AiPlayerService();
+  protected timer = TimerService.createTimer(
+    this.findAndDeclareRoundWinner.bind(this),
+    DEFAULT_ROUND_DURATION_SECONDS
+  );
+
+  // #region Getters & Setters
   private get _gameState() {
     this.Logger.info('[GET] gameState', this.state.gameState);
     return this.state.gameState;
@@ -57,10 +68,12 @@ export class GameStore extends BaseStore<State> {
     this.Logger.info('[GET] isActive', isActive);
     return isActive;
   }
-  private timer = TimerService.createTimer(
-    this.findAndDeclareRoundWinner.bind(this),
-    DEFAULT_ROUND_DURATION_SECONDS
-  );
+  public get timeLeftOfRound() {
+    const timeLeft = this.timer.timeLeft;
+    this.Logger.info('[GET] timeLeftOfRound', timeLeft);
+    return timeLeft;
+  }
+  // #endregion
 
   // #region Exposed Actions
   public startGame() {
@@ -70,18 +83,25 @@ export class GameStore extends BaseStore<State> {
       throw new Error('Cannot start game with only one player');
     }
 
-    this.Logger.info('Updating gameState to "deal".',);
+    this.Logger.info('Updating gameState to "deal".',).groupEnd();
     this._gameState = 'deal';
-    this.Logger.groupEnd();
   }
-  public playCard(player: Player, cardIndex: number) {
-    this.Logger.groupCollapsed('[ACTION] playCard', player, cardIndex);
+  public playCard(player: Player, cardResolvable: number | Card) {
+    this.Logger.groupCollapsed('[ACTION] playCard', player, cardResolvable);
     if (this._gameState !== 'play') {
       this.Logger.error('Cannot play card when not in play state').groupEnd();
       throw new Error('Cannot play card when not in play state');
     }
 
-    const card = player.cards[cardIndex];
+    const card = typeof cardResolvable === 'number'
+      ? player.cards[cardResolvable]
+      : player.cards.find(c => c === cardResolvable);
+
+    if (!card) {
+      this.Logger.error('Card not found in player deck!', { card, player }).groupEnd();
+      throw new Error('Card not found in player deck');
+    }
+
     player.activeCard = card;
 
     this.Logger.info('Updating player state with activeCard', player);
@@ -105,10 +125,17 @@ export class GameStore extends BaseStore<State> {
     ];
 
     const addedPlayer = this.state.players.find(p => p.name === username);
+    if (!addedPlayer) throw new Error('Failed to add player!');
+
     this.Logger.info('Added player', {
       players: this.state.players,
       addedPlayer
     }).groupEnd();
+
+    return addedPlayer;
+  }
+  public getCurrentPlayer() {
+    return this.state.players.find(p => p.name === this.userStore.state.username);
   }
   protected updatePlayer(player: Player) {
     this.Logger.groupCollapsed('[PLAYER ACTION] updatePlayer', player);
@@ -121,14 +148,13 @@ export class GameStore extends BaseStore<State> {
 
     this.Logger.info('Checking if ready to update gameState...');
     if (this.state.players.every(p => p.activeCard)) {
-      this.Logger.groupCollapsed('Check returned true - updating gameState to "check"');
+      this.Logger.groupCollapsed('Check returned true - updating gameState to "check"').groupEnd();
       this._gameState = 'check';
     } else {
-      this.Logger.info(`Check returned false - gameState remains "${this.state.gameState}"`);
+      this.Logger.info(`Check returned false - gameState remains "${this.state.gameState}"`).groupEnd();
     }
-    this.Logger.groupEnd();
   }
-  protected removePlayer(player: Player) {
+  public removePlayer(player: Player) {
     this.Logger.groupCollapsed('[PLAYER ACTION] removePlayer', player);
 
     const playerLength = this.state.players.length;
@@ -144,7 +170,25 @@ export class GameStore extends BaseStore<State> {
       removedPlayer: player
     });
 
+    this.Logger.info('Checking if player was an AI player...');
+    if (this.aiPlayerService.isAiPlayer(player)) {
+      this.Logger.info('Player was an AI player - removing from AI player list');
+      this.aiPlayerService.removeAiPlayer(player);
+    } else {
+      this.Logger.info('Player was not an AI player');
+    }
+
     this.Logger.groupEnd();
+  }
+
+  public addAiPlayer() {
+    this.Logger.groupCollapsed('[ACTION] addAiPlayer');
+
+    const aiPlayer = this.aiPlayerService.createAiPlayer(this, this.broadcastService);
+    const player = this.addPlayer(aiPlayer.name);
+    aiPlayer.player = player;
+
+    this.Logger.info('Added AI player', aiPlayer).groupEnd();
   }
   // #endregion
 
@@ -155,7 +199,6 @@ export class GameStore extends BaseStore<State> {
     this._subscriptions = [
       broadcastService.on('finishGame', onFinishGame(this)),
       broadcastService.on('playCard', onPlayCard(this)),
-      broadcastService.on('sendCard', onSendCard(this)),
       broadcastService.on('declareRoundWinner', onDeclareRoundWinner(this)),
       broadcastService.on('updateGameState', onUpdateGameState(this))
     ];
@@ -170,12 +213,12 @@ export class GameStore extends BaseStore<State> {
       ...player,
       cards: this.cardService.generateCardDeck()
     }));
+    this.aiPlayerService.updateAiPlayers(this.state.players);
 
     this.Logger.info('Dealt cards to players', this.state.players);
 
-    this.Logger.info('Updating gameState to "play"');
+    this.Logger.info('Updating gameState to "play"').groupEnd();
     this._gameState = 'play';
-    this.Logger.groupEnd();
   }
   protected startNewRound() {
     this.Logger.groupCollapsed('[GAME ACTION] startNewRound');
@@ -186,6 +229,10 @@ export class GameStore extends BaseStore<State> {
     }));
 
     this.Logger.info('Reset active cards for players', this.state.players).groupEnd();
+
+    this.Logger.info('Starting round timer...');
+    this.timer.restart();
+    this.Logger.info('Round timer started', this.timer);
   }
   protected findAndDeclareRoundWinner() {
     this.Logger.groupCollapsed('[GAME ACTION] findAndDeclareRoundWinner');
@@ -199,10 +246,12 @@ export class GameStore extends BaseStore<State> {
         }
         else if (!a.activeCard) {
           this.Logger.warn('Player A has no card!', { a, b }).groupEnd();
+          // Player B wins
           return 1;
         }
         else if (!b.activeCard) {
           this.Logger.warn('Player B has no card!', { a, b }).groupEnd();
+          // Player A wins
           return -1;
         }
 
@@ -226,8 +275,8 @@ export class GameStore extends BaseStore<State> {
 
     const winState: WinState = (
       !winner ? 'draw' :
-        winner.name === this.userStore.user.username ? 'win' :
-          'loss'
+      winner.name === this.userStore.user.username ? 'win' :
+      'loss'
     );
 
     this.Logger.info('Broadcasting winner', { winner, winState });

@@ -1,0 +1,20 @@
+.lobby {
+  --margin: 2em;
+  
+  position: relative;
+  height: 100%;
+  width: calc(100vw - var(--margin) * 2);
+  margin: 2em;
+
+  main {
+    display: grid;
+    justify-content: center;
+  }
+
+  aside {
+    position: absolute;
+    right: 1rem;
+    top: 0;
+    width: 24ch;
+  }
+}

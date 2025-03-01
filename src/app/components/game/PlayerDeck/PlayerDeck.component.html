@@ -1,0 +1,5 @@
+<ol class="deck">
+  <li *ngFor="let card of deck" class="card">
+    <gamecard [card]="card" [showContent]="true"></gamecard>
+  </li>
+</ol>

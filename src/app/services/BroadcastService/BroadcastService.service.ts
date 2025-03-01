@@ -19,7 +19,6 @@ export class BroadcastService {
     updateGameState: new Subject<GameState>(),
     finishGame: new Subject(),
     playCard: new Subject(),
-    sendCard: new Subject(),
     declareRoundWinner: new Subject(),
     message: new Subject(),
   };

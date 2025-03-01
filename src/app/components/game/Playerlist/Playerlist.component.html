@@ -1,0 +1,8 @@
+<div class="playerlist-container">
+  <ul class="playerlist">
+    <li *ngFor="let player of players" (click)="removePlayer(player)">{{player.name}}</li>
+  </ul>
+  <div class="button-container">
+    <add-ai-button />
+  </div>
+</div>

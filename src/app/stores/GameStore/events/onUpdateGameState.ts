@@ -1,7 +1,7 @@
 import CreateEventHandler from "./_CreateEventHandler";
 
 export default CreateEventHandler('updateGameState', function (gameState) {
-  this.Logger.groupCollapsed('[EVENT] updateGameState', gameState);
+  this.Logger.info('[EVENT] updateGameState', gameState);
 
   switch (gameState) {
     // The store was initialized
@@ -23,6 +23,4 @@ export default CreateEventHandler('updateGameState', function (gameState) {
     // Invalid game state
     default: throw new Error(`Invalid game state: ${gameState}`);
   }
-
-  this.Logger.groupEnd();
 })

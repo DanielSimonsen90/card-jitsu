@@ -7,6 +7,7 @@ export default class Timer {
   }
 
   protected timeout: NodeJS.Timeout | null = null;
+  protected timestamp: number = 0;
   protected callbacks: Array<TimerCallback> = [];
   protected seconds: number = 0;
 
@@ -14,22 +15,34 @@ export default class Timer {
     return this.timeout !== null;
   }
 
+  public get timeLeft(): number {
+    if (this.timeout) {
+      const timeLeft = this.seconds - ((Date.now() - this.timestamp) / 1000);
+      return timeLeft > 0 ? Math.floor(timeLeft) : 0;
+    }
+
+    return 0;
+  }
+
+
   public start(seconds?: number): Promise<void> {
     this.safeAssignSeconds(seconds);
 
     return new Promise((resolve, reject) => {
+      const timeout = this.seconds * 1000;
       this.timeout = setTimeout(() => {
         this.timeout = null;
         this.callbacks.forEach(callback => {
           try {
             callback();
           } catch (error) {
-            reject(error); 
+            reject(error);
           }
         });
 
         resolve();
-      }, this.seconds * 1000);
+      }, timeout);
+      this.timestamp = Date.now();
     });
   }
 
@@ -60,6 +73,6 @@ export default class Timer {
 
   protected safeAssignSeconds(seconds?: number) {
     if (seconds && seconds > 1) this.seconds = seconds;
-    else throw new Error('Timer must be set to at least 1 second');
+    else if (seconds) throw new Error(`Timer must be set to at least 1 second, got ${seconds}`);
   }
 }

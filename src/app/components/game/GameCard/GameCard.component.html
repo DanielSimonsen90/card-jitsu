@@ -1,0 +1,10 @@
+<div class="game-card" 
+  [attr.data-color]="card.color" 
+  [attr.data-selected]="card.selected"
+  (click)="onClick()"
+>
+  <p>{{ card.value }}</p>
+
+  <!-- TODO: Render elemental type icon -->
+  <b>{{ card.type }}</b>
+</div>
