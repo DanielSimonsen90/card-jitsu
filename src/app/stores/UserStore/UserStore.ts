@@ -1,5 +1,5 @@
 import { computed, Injectable } from "@angular/core";
-import BaseStore, { StoreProperties } from "../BaseStore";
+import BaseStore, { StoreState } from "../BaseStore";
 import User from "./User";
 import { StorageService } from "@/services/StorageService";
 
@@ -19,7 +19,7 @@ type State = {
 }
 
 @Injectable({ providedIn: 'root' })
-@StoreProperties<State>({
+@StoreState<State>({
   username: '',
   wins: 0,
   losses: 0,
@@ -61,7 +61,7 @@ export class UserStore extends BaseStore<State> {
     this.save();
   }
 
-  public toJSON() {
+  public override toJSON() {
     const { username, wins, losses } = this.state;
     
     return {

@@ -3,6 +3,9 @@ import ElementalService from "../ElementalService";
 import { Card, Color } from "./CardService.types";
 import { ElementalType } from "../ElementalService/ElementalService.types";
 
+const DEFAULT_DECK_SIZE = 5;
+const DEFAULT_MAX_CARD_VALUE = 20;
+
 /**
  * CardService is in charge of generating and dealing cards for the players
  * Additionally, also responsible to determine which card wins a duel, by using the ElementalService
@@ -19,9 +22,18 @@ export default class CardService {
     private readonly elementalService: ElementalService
   ) {}
 
-  private readonly colors: Array<Color> = ['red', 'orange', 'yellow', 'green', 'blue', 'purple'];
+  protected readonly colors: Array<Color> = ['red', 'orange', 'yellow', 'green', 'blue', 'purple'];
+  protected deckSize = DEFAULT_DECK_SIZE;
+  protected maxCardValue = DEFAULT_MAX_CARD_VALUE;
 
   // #region Generate card
+  public generateCardDeck(): Array<Card> {
+    return Array.from(
+      { length: this.deckSize }, 
+      () => this.generateCard()
+    );
+  }
+
   /**
    * Generates a random card
    */
@@ -37,7 +49,7 @@ export default class CardService {
    * Generates a random value between 1 and 20
    */
   private generateValue(): number {
-    const randomNumber = () => Math.floor(Math.random() * 20) + 1;
+    const randomNumber = () => Math.floor(Math.random() * this.maxCardValue) + 1;
     const values = Array.from({ length: 5 }, randomNumber);
     const result = values.reduce((acc, value) => acc + value, 0) / values.length;
     return Math.round(result);
@@ -80,13 +92,33 @@ export default class CardService {
     // If elemental types are different, the card with the highest elemental precedence wins
     return this.determineWinnerByElementalType(a, b);
   }
-
   private determineWinnerByValue(a: Card, b: Card): Card {
     return a.value > b.value ? a : b;
   }
   private determineWinnerByElementalType(a: Card, b: Card): Card {
     return this.elementalService.getHighestPrecedence(a.type, b.type) === a.type ? a : b;
   }
+  // #endregion
 
+  // #region Service Settings
+  /**
+   * Sets the deck size
+   * 
+   * @param size The size of the deck
+   */
+  public setDeckSize(size: number) {
+    if (size < 1) throw new Error('Deck size must be at least 1');
+    this.deckSize = size;
+  }
+
+  /**
+   * Sets the max card value
+   * 
+   * @param value The max value of a card
+   */
+  public setMaxCardValue(value: number) {
+    if (value < 1) throw new Error('Max card value must be at least 1');
+    this.maxCardValue = value;
+  }
   // #endregion
 }

@@ -1,13 +1,13 @@
 import { StorageService } from "@/services/StorageService";
 import LoggerService from "@/services/LoggerService";
 import { WritableSignal } from "@angular/core";
-import { InjectStorePropertiesKey } from "./StoreProperty";
+import { InjectStorePropertiesKey } from "./StoreState";
 
-export { default as StoreProperties } from './StoreProperty';
+export { default as StoreState } from './StoreState';
 
 export default abstract class BaseStore<State extends object> {
   constructor(
-    protected _storageService: StorageService,
+    protected storageService: StorageService,
     tag: string,
   ) {
     this.Logger = LoggerService.createStoreLogger(tag);
@@ -21,13 +21,17 @@ export default abstract class BaseStore<State extends object> {
   protected readonly Logger: ReturnType<typeof LoggerService.createStoreLogger>;
   public state = {} as State;
   
-  public abstract toJSON(): object;
+  public toJSON(): object {
+    return {};
+  }
 
   public save() {
     this.Logger.groupCollapsed('Requested save');
 
     const json = JSON.stringify(this.toJSON());
-    this._storageService.setItem(this.constructor.name, json);
+    if (json === '{}') this.Logger.warn('toJSON function was not overloaded or returned blank object.');
+
+    this.storageService.setItem(this.constructor.name, json);
 
     this.Logger.info('Saved JSON to storage', json).groupEnd();
   }
@@ -41,7 +45,7 @@ export default abstract class BaseStore<State extends object> {
     }
     this._loaded = true;
 
-    const localStateJson = this._storageService.getItem(this.constructor.name);
+    const localStateJson = this.storageService.getItem(this.constructor.name);
     if (!localStateJson) {
       this.Logger.info('No data found in storage', this).groupEnd();
       return;
@@ -68,7 +72,7 @@ export default abstract class BaseStore<State extends object> {
   }
   public delete() {
     this.Logger.groupCollapsed('Requested delete');
-    this._storageService.removeItem(this.constructor.name);
+    this.storageService.removeItem(this.constructor.name);
     this.Logger.info('Deleted data from storage', this.constructor.name);
 
     this.reset();

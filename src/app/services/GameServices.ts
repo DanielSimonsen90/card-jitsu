@@ -1,5 +1,4 @@
-import BroadcastService from "./BroadcastService";
-import CardService from "./CardService";
-import ElementalService from "./ElementalService";
-
-export default [BroadcastService, CardService, ElementalService]
+export { default as BroadcastService } from "./BroadcastService";
+export { default as CardService } from "./CardService";
+export { default as ElementalService } from "./ElementalService";
+export { default as TimerService } from "./TimerService";

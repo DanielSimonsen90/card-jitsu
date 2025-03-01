@@ -5,7 +5,7 @@ const Logger = LoggerService.createLogger('StoreProperties');
 
 export const InjectStorePropertiesKey = Symbol('InjectStoreProperties');
 
-export default function StoreProperties<TProps extends object>(props: TProps) {
+export default function StoreState<TProps extends object>(props: TProps) {
   return function (target: any) {
     if (!target.prototype || InjectStorePropertiesKey in target.prototype) return;
     else if (!target?.prototype) {
