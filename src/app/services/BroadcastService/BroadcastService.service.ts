@@ -1,6 +1,7 @@
 import { Injectable } from "@angular/core";
 import { Subject, Subscription } from "rxjs";
 import { Broadcast, BroadcastEventCallback, GameState } from "./BroadcastService.types";
+import { GameProvider } from "@/components/game";
 
 /**
  * # BroadcastService
@@ -13,7 +14,7 @@ import { Broadcast, BroadcastEventCallback, GameState } from "./BroadcastService
  * * declareRoundWinner => roundEnded: [winner: Player, card: Card]
  */
 
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class BroadcastService {
   private readonly broadcast: Record<keyof Broadcast, Subject<any>> = {
     updateGameState: new Subject<GameState>(),

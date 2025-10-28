@@ -3,7 +3,9 @@
 <ng-template #lobby>
   <div class="lobby">
     <main>
-      <start-game-button />
+      <button class="brand primary" (click)="onStartGameClicked()">
+        Start playing {{ SITE_NAME }}
+      </button>
     </main>
     <aside>
       <playerlist />

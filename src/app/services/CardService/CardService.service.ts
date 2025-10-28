@@ -2,6 +2,7 @@ import { Injectable } from "@angular/core";
 import ElementalService from "../ElementalService";
 import { Card, Color, GameWins } from "./CardService.types";
 import { ElementalType } from "../ElementalService/ElementalService.types";
+import { GameProvider } from "@/components/game";
 
 const DEFAULT_DECK_SIZE = 5;
 const DEFAULT_MAX_CARD_VALUE = 20;
@@ -16,7 +17,7 @@ const DEFAULT_MAX_CARD_VALUE = 20;
  *  - Have a color, which is one of the Color values
  */
 
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export default class CardService {
   constructor(
     private readonly elementalService: ElementalService

@@ -1,5 +1,5 @@
 import { GameStore } from '@/stores';
-import { Component, inject, OnDestroy, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -7,6 +7,7 @@ import { Subscription } from 'rxjs';
   selector: 'game-timer',
   templateUrl: 'GameTimer.component.html',
   styleUrl: 'GameTimer.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [],
 })
 
@@ -21,13 +22,18 @@ export class GameTimerComponent implements OnInit, OnDestroy {
   }
 
   protected startInterval() {
+    this.stopInterval(); // Prevent multiple intervals
+
     this.interval = setInterval(() => {
       this.changeDetectorRef.markForCheck();
     }, 1000);
   }
 
   protected stopInterval() {
-    if (this.interval) clearInterval(this.interval);
+    if (this.interval) {
+      clearInterval(this.interval);
+      this.interval = null;
+    }
   }
 
   public ngOnInit() {

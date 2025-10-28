@@ -21,7 +21,7 @@ export default class Timer {
       return timeLeft > 0 ? Math.floor(timeLeft) : 0;
     }
 
-    return 0;
+    return this.seconds;
   }
 
 

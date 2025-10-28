@@ -1,4 +1,5 @@
 <div class="game-card" 
+  [class.game-card--winner]="isWinner"
   [attr.data-selected]="card.selected" 
   [style.background-color]="card.color"
   (click)="onClick()"
@@ -7,6 +8,7 @@
     [attr.data-type]="card.type"
   >
     <p>{{ card.value }}</p>
+    <p ngIf="isWinner">Winner!</p>
 
     <!-- TODO: Render elemental type icon -->
     <b>{{ card.type }}</b>

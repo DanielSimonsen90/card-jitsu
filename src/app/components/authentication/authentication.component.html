@@ -2,7 +2,9 @@
   <div *ngIf="isAuthenticated; then main else login"></div>
   
   <ng-template #main>
-    <app-main></app-main>
+    <app-game-provider>
+      <app-main></app-main>
+    </app-game-provider>
   </ng-template>
   
   <ng-template #login>

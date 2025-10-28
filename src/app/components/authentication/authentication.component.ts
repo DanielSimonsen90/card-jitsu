@@ -4,6 +4,7 @@ import { Component, effect, inject, OnInit } from "@angular/core";
 import LoginComponent from "./components/login";
 import { MainComponent } from "../main/main.component";
 import LoggerService from "@/services/LoggerService";
+import { GameProvider } from "../game";
 
 const Logger = LoggerService.createComponentLogger('Authentication').disable();
 
@@ -13,7 +14,7 @@ const Logger = LoggerService.createComponentLogger('Authentication').disable();
   imports: [
     CommonModule,
     LoginComponent,
-    MainComponent
+    GameProvider, MainComponent
   ],
   templateUrl: './authentication.component.html',
   styleUrl: './authentication.component.scss',
@@ -29,7 +30,7 @@ export default class AuthenticationComponent implements OnInit {
     });
   }
 
-  ngOnInit(): void {
+  public ngOnInit(): void {
     this.userStore.load();
   }
 

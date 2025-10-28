@@ -16,8 +16,10 @@ import BaseStore, { StoreState } from "../BaseStore";
 import { UserStore } from "../UserStore";
 
 import { onDeclareRoundWinner, onFinishGame, onPlayCard, onUpdateGameState } from './events';
+import { GameProvider } from "@/components/game";
 
 const DEFAULT_ROUND_DURATION_SECONDS = 30;
+const ROUND_END_DELAY_SECONDS = 3;
 
 type State = {
   gameState: GameState;
@@ -26,7 +28,7 @@ type State = {
   aiPlayerNames: Array<string>;
 };
 
-@Injectable({ providedIn: 'root' })
+@Injectable()
 @StoreState<State>({
   gameState: 'idle',
   players: [],
@@ -67,6 +69,7 @@ export class GameStore extends BaseStore<State> {
   public get players() {
     const players = this.state.players;
     this.Logger.info('[GET] players', players);
+    
     if (!players.length && this._gameState !== 'idle') {
       this.Logger.error('No players found!', players);
       this._gameState = 'idle';
@@ -250,7 +253,10 @@ export class GameStore extends BaseStore<State> {
     this.Logger.info('Dealt cards to players', this.players);
 
     this.Logger.info('Updating gameState to "play"').groupEnd();
-    this._gameState = 'play';
+
+    setTimeout(() => {
+      this._gameState = 'play';
+    }, 1000);
   }
   protected startNewRound() {
     this.Logger.groupCollapsed('[GAME ACTION] startNewRound');
@@ -271,8 +277,10 @@ export class GameStore extends BaseStore<State> {
     this.timer.restart();
     this.Logger.info('Round timer started', this.timer);
   }
-  protected findAndDeclareRoundWinner() {
+  protected async findAndDeclareRoundWinner() {
     this.Logger.groupCollapsed('[GAME ACTION] findAndDeclareRoundWinner');
+
+    await new Promise(resolve => setTimeout(resolve, ROUND_END_DELAY_SECONDS * 1000));
 
     this.Logger.groupCollapsed('Sorting winners...');
     const winner = this.players
@@ -317,8 +325,6 @@ export class GameStore extends BaseStore<State> {
 
     this.Logger.info('Broadcasting winner', { winner, winState });
     this.broadcastService.emit('declareRoundWinner', winState, winner, winner?.activeCard ?? null);
-
-    this.checkGameWinner();
   }
   protected checkGameWinner() {
     this.Logger.groupCollapsed('[GAME ACTION] checkGameWinner', this.players.map(p => ({

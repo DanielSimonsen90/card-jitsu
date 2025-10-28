@@ -3,6 +3,8 @@
     <li *ngFor="let player of players" (click)="removePlayer(player)">{{player.name}}</li>
   </ul>
   <div class="button-container">
-    <add-ai-button />
+    <button class="secondary" (click)="onAddAiPlayerClicked()">
+      Add AI player
+    </button>
   </div>
 </div>

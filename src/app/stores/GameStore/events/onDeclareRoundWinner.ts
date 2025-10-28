@@ -10,4 +10,6 @@ export default CreateEventHandler('declareRoundWinner', function (winState, winn
   }
 
   Logger.info(`${winner.name} wins with ${card.color} ${card.type} with value ${card.value}. This means that you ${winState === 'win' ? 'won' : 'lost'}!`);
+
+  this.checkGameWinner();
 });

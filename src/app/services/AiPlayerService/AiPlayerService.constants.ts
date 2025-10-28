@@ -42,3 +42,5 @@ export const ClubPenguinNames = [
   'McKenzie',
   'Kermit the Frog',
 ]
+
+export const MAX_WAIT_TIME_BEFORE_PLAY_CARD = 3000;

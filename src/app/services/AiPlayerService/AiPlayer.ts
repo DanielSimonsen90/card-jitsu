@@ -1,6 +1,7 @@
 import { Player } from "@/models/types";
 import BroadcastService from "../BroadcastService";
 import { GameStore } from "@/stores";
+import { MAX_WAIT_TIME_BEFORE_PLAY_CARD } from "./AiPlayerService.constants";
 
 export default class AiPlayer implements Pick<Player, 'name'> {
   constructor(
@@ -10,7 +11,7 @@ export default class AiPlayer implements Pick<Player, 'name'> {
   ) {
     broadcastService.on('updateGameState', state => {
       switch (state) {
-        case 'play': this.playCard(); break;
+        case 'play': setTimeout(() => this.playCard(), Math.random() * MAX_WAIT_TIME_BEFORE_PLAY_CARD); break;
       }
     });
   }

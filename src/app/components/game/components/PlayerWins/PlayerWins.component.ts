@@ -3,7 +3,7 @@ import CardService from '@/services/CardService';
 import { ElementalType } from '@/services/ElementalService/ElementalService.types';
 import { GameStore } from '@/stores';
 import { CommonModule } from '@angular/common';
-import { Component, Input } from '@angular/core';
+import { Component, inject, Input } from '@angular/core';
 
 @Component({
   standalone: true,
@@ -17,10 +17,8 @@ import { Component, Input } from '@angular/core';
 export class PlayerWinsComponent {
   @Input() public player!: Player;
 
-  constructor(
-    protected gameStore: GameStore,
-    protected cardService: CardService
-  ) { }
+  protected gameStore = inject(GameStore);
+  protected cardService = inject(CardService);
 
   public get wins() {
     return this.cardService.getWinsFromCards(this.player.wins);

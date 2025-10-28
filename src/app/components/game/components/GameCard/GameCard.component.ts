@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { GameCard } from '@/services/CardService/CardService.types';
 import { GameStore } from '@/stores';
 import { Player } from '@/models/types';
@@ -18,6 +18,7 @@ export class GameCardComponent {
   @Input() public card!: GameCard;
   @Input() public showContent: boolean = false;
 
+  public isWinner = false;
   protected player: Player;
 
   constructor(
@@ -26,6 +27,10 @@ export class GameCardComponent {
     const player = this.gameStore.getCurrentPlayer();
     if (player) this.player = player;
     else throw new Error('Current player not found');
+
+    gameStore.on('declareRoundWinner', (state, winner) => {
+      this.isWinner = winner?.name === this.player.name;
+    })
   }
 
   public onClick() {
