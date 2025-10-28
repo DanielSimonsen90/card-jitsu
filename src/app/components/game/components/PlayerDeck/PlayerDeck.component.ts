@@ -1,7 +1,7 @@
 import { GameCard } from '@/services/CardService/CardService.types';
 import { GameStore } from '@/stores';
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { GameCardComponent } from "../GameCard/GameCard.component";
 
 @Component({
@@ -16,16 +16,15 @@ import { GameCardComponent } from "../GameCard/GameCard.component";
 })
 
 export class PlayerDeckComponent {
-  constructor(
-    protected gameStore: GameStore
-  ) { }
+  protected gameStore = inject(GameStore);
 
   public get deck(): Array<GameCard> {
-    const cards = this.gameStore.getCurrentPlayer()?.cards ?? [];
-
+    const player = this.gameStore.getCurrentPlayer();
+    const cards = player?.cards ?? [];
+    
     return cards.map(card => ({
       ...card,
-      selected: (this.gameStore.getCurrentPlayer()?.activeCard === card) || false
+      selected: (player?.activeCard === card) || false
     }));
   }
 }

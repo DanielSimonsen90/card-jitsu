@@ -1,3 +1,5 @@
+@use "sass:color";
+
 $muted-alpha: 20%;
 
 $background-primary--muted: #2d2d2d;
@@ -26,11 +28,11 @@ $text-danger: hsl(0, 80%, 65%);
 
 $brand--muted: rgba(0, 105, 186, $muted-alpha);
 $brand: rgb(0, 105, 186);
-$brand--light: lighten($brand, 10%);
+$brand--light: color.adjust($brand, $lightness: 10%);
 
 $brand-alt--muted: rgba(186, 105, 0, $muted-alpha);
 $brand-alt: rgb(186, 105, 0);
-$brand-alt--light: lighten($brand-alt, 10%);
+$brand-alt--light: color.adjust($brand-alt, $lightness: 10%);
 
 $element-fire: hsl(19, 94%, 50%);
 $element-water: hsl(200, 100%, 41%);

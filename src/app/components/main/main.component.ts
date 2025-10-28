@@ -3,7 +3,6 @@ import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 
 import { SITE_NAME } from '@/constants';
 import { GameStore } from '@/stores';
-import { BroadcastService, CardService, ElementalService } from '@/services/GameServices';
 import LoggerService from '@/services/LoggerService';
 import { GameCard } from '@/services/CardService/CardService.types';
 

@@ -31,11 +31,12 @@ export default class Logger {
     this.log('info', ...args);
   }
   public groupCollapsed(...args: any[]) {
-    // this.log('groupCollapsed', ...args);
-    this.log('info', ...args);
+    this.log('groupCollapsed', ...args);
+    // this.log('info', ...args);
     return this;
   }
   public groupEnd() {
+    this.log('log', 'End of group')
     this.log('groupEnd');
     return this;
   }

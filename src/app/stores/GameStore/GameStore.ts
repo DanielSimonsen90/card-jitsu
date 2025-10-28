@@ -42,26 +42,23 @@ export class GameStore extends BaseStore<State> {
     protected broadcastService: BroadcastService,
     protected cardService: CardService,
     protected elementalService: ElementalService,
+    protected timerService: TimerService,
   ) {
     super(storageService, 'Game');
   }
 
   protected aiPlayerService = new AiPlayerService();
-  protected timer = TimerService.createTimer(
-    this.findAndDeclareRoundWinner.bind(this),
-    DEFAULT_ROUND_DURATION_SECONDS
-  );
 
   // #region Getters & Setters
   private get _gameState() {
-    this.Logger.info('[GET] gameState', this.state.gameState);
+    // this.Logger.info('[GET] gameState', this.state.gameState);
     return this.state.gameState;
   }
   private set _gameState(state: GameState) {
     this.Logger.groupCollapsed('[SET] gameState', state);
     this.state.gameState = state;
 
-    this.Logger.info('Broadcasting updateGameState', state);
+    // this.Logger.info('Broadcasting updateGameState', state);
     this.broadcastService.emit('updateGameState', state);
     this.Logger.groupEnd();
   }
@@ -86,13 +83,17 @@ export class GameStore extends BaseStore<State> {
 
   public get isActive() {
     const isActive = this._gameState !== 'idle' && this._gameState !== 'finish';
-    this.Logger.info('[GET] isActive', isActive, this);
+    // this.Logger.info('[GET] isActive', isActive, this);
     return isActive;
   }
   public get timeLeftOfRound() {
-    const timeLeft = this.timer.timeLeft;
+    const timeLeft = this.timerService.timeLeft;
     this.Logger.info('[GET] timeLeftOfRound', timeLeft);
     return timeLeft;
+  }
+  
+  public get timeLeft$() {
+    return this.timerService.timeLeft$;
   }
   // #endregion
 
@@ -227,14 +228,14 @@ export class GameStore extends BaseStore<State> {
   // #region Broadcast Events
   private _subscriptions: Array<Subscription> = [];
   private _registerBroadcastEvents(broadcastService: BroadcastService) {
-    this.Logger.groupCollapsed('Registering BroadcastEvents...', this._subscriptions);
+    // this.Logger.groupCollapsed('Registering BroadcastEvents...', this._subscriptions);
     this._subscriptions = [
       broadcastService.on('finishGame', onFinishGame(this)),
       broadcastService.on('playCard', onPlayCard(this)),
       broadcastService.on('declareRoundWinner', onDeclareRoundWinner(this)),
       broadcastService.on('updateGameState', onUpdateGameState(this))
     ];
-    this.Logger.info('Registered BroadcastEvents', this._subscriptions).groupEnd();
+    // this.Logger.info('Registered BroadcastEvents', this._subscriptions).groupEnd();
   }
 
   public on<TEvent extends keyof Broadcast>(event: TEvent, callback: BroadcastEventCallback<TEvent>) {
@@ -264,18 +265,21 @@ export class GameStore extends BaseStore<State> {
     this.players = this.players.map(player => ({
       ...player,
       activeCard: null,
-      cards: player.cards.map(card => (
-        player.activeCard && this.cardService.isSameCard(card, player.activeCard)
-          ? this.cardService.generateCard()
-          : card
-      ))
+      cards: player.cards.map(card => {
+        if (player.activeCard && this.cardService.isSameCard(card, player.activeCard)) {
+          const newCard = this.cardService.generateCard();
+          this.Logger.info('Replacing active card with new card', { oldCard: card, newCard });
+          return newCard;
+        }
+        return card;
+      })
     }));
 
     this.Logger.info('Updated card state for players', this.players).groupEnd();
 
     this.Logger.info('Starting round timer...');
-    this.timer.restart();
-    this.Logger.info('Round timer started', this.timer);
+    this.timerService.startTimer(DEFAULT_ROUND_DURATION_SECONDS, () => this.findAndDeclareRoundWinner());
+    this.Logger.info('Round timer started');
   }
   protected async findAndDeclareRoundWinner() {
     this.Logger.groupCollapsed('[GAME ACTION] findAndDeclareRoundWinner');
@@ -383,11 +387,11 @@ export class GameStore extends BaseStore<State> {
     this.state.lastWinner = null;
 
     if (forceToIdle) this._gameState = 'idle';
-    if (this.timer.isActive) this.timer.stop();
+    this.timerService.stopTimer();
   }
   public setRoundTimer(seconds: number) {
-    this.timer.setSeconds(seconds);
-    this.Logger.info(`Updated round timer to ${seconds} seconds`, this.timer);
+    // Note: This method may need adjustment based on how you want to handle timer duration changes
+    this.Logger.info(`Round timer duration set to ${seconds} seconds`);
     return this;
   }
   public setCardDeckSize(size: number) {

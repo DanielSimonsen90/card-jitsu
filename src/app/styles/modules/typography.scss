@@ -1,4 +1,5 @@
 @use 'sass:map';
+@use 'sass:list';
 
 * {
   --font-size: 18px;
@@ -32,13 +33,13 @@ $margins: (
   .25em
 );
 
-@for $i from 1 through length($headings) {
-  #{nth($headings, $i)} {
-    $margin: nth($margins, $i);
+@for $i from 1 through list.length($headings) {
+  #{list.nth($headings, $i)} {
+    $margin: list.nth($margins, $i);
     --margins: #{$margin};
 
-    font-size: min(calc(var(--font-size) * nth($sizes, $i)), 2em);
-    line-height: nth($line-heights, $i);
+    font-size: min(calc(var(--font-size) * list.nth($sizes, $i)), 2em);
+    line-height: list.nth($line-heights, $i);
     font-weight: bold;
     margin-block-start: var(--margins);
     margin-block-end: var(--margins);

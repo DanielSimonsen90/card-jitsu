@@ -8,7 +8,7 @@
     [attr.data-type]="card.type"
   >
     <p>{{ card.value }}</p>
-    <p ngIf="isWinner">Winner!</p>
+    <p *ngIf="isWinner">Winner!</p>
 
     <!-- TODO: Render elemental type icon -->
     <b>{{ card.type }}</b>
