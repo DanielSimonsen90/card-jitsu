@@ -3,10 +3,10 @@ import { Subscription } from 'rxjs';
 import type { Broadcast } from '@/services/BroadcastService/BroadcastService.types';
 import type { GameStore } from '@/stores';
 
-export const AutoSubscribeCallbackKey = Symbol('AutoSubscribeCallback');
+const AutoSubscribeCallbacksKey = Symbol('AutoSubscribeCallbacks');
 
 interface AutoSubscribeCallbackInstance extends OnInit, OnDestroy {
-  [AutoSubscribeCallbackKey]?: () => void;
+  [AutoSubscribeCallbacksKey]?: (() => void)[];
   _autoSubscriptions?: Subscription[];
   gameStore?: GameStore;
   [key: string]: any;
@@ -24,17 +24,19 @@ export default function AutoSubscribeWithCallback<
     const originalNgOnInit = constructor.prototype.ngOnInit;
     const originalNgOnDestroy = constructor.prototype.ngOnDestroy;
 
-    constructor.prototype[AutoSubscribeCallbackKey] = function (this: AutoSubscribeCallbackInstance) {
-      this._autoSubscriptions = [];
-
+    // Add this callback to the array of callbacks
+    constructor.prototype[AutoSubscribeCallbacksKey] ??= [];
+    constructor.prototype[AutoSubscribeCallbacksKey].push(function (this: AutoSubscribeCallbackInstance) {
+      this._autoSubscriptions ??= [];
       if (!this.gameStore || typeof this.gameStore.on !== 'function') throw new Error(`GameStore not found or invalid. Expected 'this.gameStore' to be a GameStore instance with 'on' method.`);
 
       const subscription = this.gameStore.on(eventName, (...args: Broadcast[TEvent]) => callback(this as TComponent, ...args));
       if (subscription && typeof subscription.unsubscribe === 'function') this._autoSubscriptions.push(subscription);
-    };
+    });
 
     constructor.prototype.ngOnInit = function (this: AutoSubscribeCallbackInstance) {
-      if (this[AutoSubscribeCallbackKey]) this[AutoSubscribeCallbackKey]();
+      // Execute all stored callback functions
+      if (this[AutoSubscribeCallbacksKey]) this[AutoSubscribeCallbacksKey].forEach(callback => callback.call(this));
       if (originalNgOnInit) originalNgOnInit.call(this);
     };
 

@@ -1,13 +1,15 @@
 @use '../../../styles/partials/mixins' as mixins;
 
 .site-header {
+  --_padding: 1rem;
+
   display: flex;
-  justify-content: center; /* Center the site-name */
+  justify-content: center;
   align-items: center;
-  padding: 1rem;
   border-bottom: 1px solid var(--background-secondary);
-  position: relative; /* Make the site-header a positioning context */
-  width: 100%;
+  position: relative;
+  padding: var(--_padding);
+  width: calc(100% - (2 * var(--_padding)));
 
   .site-name {
     margin: 0;

@@ -11,6 +11,7 @@ import {
   GameTimerComponent, GameCardComponent, 
   PlayerDeckComponent 
 } from '../game/components';
+import { AutoSubscribeWithCallback } from '@/decorators';
 
 const Logger = LoggerService.createComponentLogger('Main');
 
@@ -28,6 +29,17 @@ const Logger = LoggerService.createComponentLogger('Main');
   ],
 })
 
+@AutoSubscribeWithCallback(MainComponent, 'declareRoundWinner', (component, state) => {
+  component.roundConclusionText = `${state.substring(0, 1).toUpperCase()}${state.substring(1)}!`;
+})
+@AutoSubscribeWithCallback(MainComponent, 'updateGameState', (component, state) => {
+  if (state === 'play') component.roundConclusionText = undefined;
+})
+@AutoSubscribeWithCallback(MainComponent, 'finishGame', (component, winner) => {
+  component.roundConclusionText = winner
+    ? `${winner.name} wins!`
+    : `It's a tie!`;
+})
 export class MainComponent implements OnInit, OnDestroy {
   protected gameStore = inject(GameStore);
 
@@ -67,6 +79,8 @@ export class MainComponent implements OnInit, OnDestroy {
       }) as GameCard);
 
   }
+
+  public roundConclusionText: string | undefined = undefined;
 
   public ngOnInit(): void {
     this.gameStore.onInit();

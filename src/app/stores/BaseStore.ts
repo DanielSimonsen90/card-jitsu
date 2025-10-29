@@ -1,9 +1,7 @@
 import { StorageService } from "@/services/StorageService";
 import LoggerService from "@/services/LoggerService";
 import { WritableSignal } from "@angular/core";
-import { InjectStorePropertiesKey } from "./StoreState";
-
-export { default as StoreState } from './StoreState';
+import { InjectStorePropertiesKey } from "../decorators/StoreState";
 
 export default abstract class BaseStore<State extends object> {
   constructor(

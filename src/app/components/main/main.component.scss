@@ -20,7 +20,40 @@
   }
 }
 
+.game-header {
+  display: grid;
+  place-items: center;
+  grid-auto-flow: column;
+  grid-template-columns: repeat(3, 1fr);
+  width: 100%;
+  gap: 2rem;
+}
+
+.conclusion {
+  text-align: center;
+}
+
+.player-decks { 
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  padding: 0;
+
+  li {
+    list-style: none;
+  }
+}
+
+.active-cards-container {
+  display: grid;
+  place-items: center;
+}
+
 .active-cards {
+  display: flex;
+  gap: 1rem;
+  padding: unset;
+
   li {
     list-style: none;
   }

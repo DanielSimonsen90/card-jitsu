@@ -2,6 +2,7 @@
 
 <ng-template #lobby>
   <div class="lobby">
+    <p class="conclusion" *ngIf="roundConclusionText">{{ roundConclusionText }}</p>
     <main>
       <button class="brand primary" (click)="onStartGameClicked()">
         Start playing {{ SITE_NAME }}
@@ -14,13 +15,22 @@
 </ng-template>
 
 <ng-template #game>
-  <header>
+  <header class="game-header">
     <player-wins *ngFor="let opponent of opponents" [player]="opponent" />
     <game-timer />
     <player-wins [player]="currentPlayer" />
   </header>
 
+  <section class="sub-header">
+    <ul class="player-decks">
+      <li *ngFor="let opponent of opponents">
+        <player-deck [player]="opponent" [showContent]="false" />
+      </li>
+    </ul>
+  </section>
+
   <section class="active-cards-container">
+    <p class="conclusion" *ngIf="roundConclusionText">{{ roundConclusionText }}</p>
     <ul class="active-cards">
       <li *ngFor="let card of activeCards">
         <gamecard [card]="card" [showContent]="shouldShowActiveCardContent" />

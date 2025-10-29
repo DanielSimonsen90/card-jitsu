@@ -1,4 +1,6 @@
-<div class="game-card" 
+<div *ngIf="!card" class="game-card"></div>
+
+<div *ngIf="card" class="game-card" 
   [class.game-card--winner]="isWinner"
   [attr.data-selected]="card.selected" 
   [style.background-color]="card.color"

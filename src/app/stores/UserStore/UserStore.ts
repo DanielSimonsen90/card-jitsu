@@ -1,7 +1,10 @@
 import { computed, Injectable } from "@angular/core";
-import BaseStore, { StoreState } from "../BaseStore";
-import User from "./User";
+
+import { StoreState } from "@/decorators";
 import { StorageService } from "@/services/StorageService";
+
+import BaseStore from "../BaseStore";
+import User from "./User";
 
 /**
  * # UserStore

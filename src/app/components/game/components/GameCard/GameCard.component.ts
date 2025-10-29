@@ -18,7 +18,7 @@ import { AutoSubscribeWithCallback } from '@/decorators';
   component.isWinner = winner?.name === component.player?.name;
 })
 export class GameCardComponent implements OnInit {
-  @Input() public card!: GameCard;
+  @Input() public card: GameCard | null = null;
   @Input() public showContent: boolean = false;
 
   public isWinner = false;
@@ -34,7 +34,7 @@ export class GameCardComponent implements OnInit {
   }
 
   public onClick() {
-    if (this.card.selected || !this.showContent || !this.player) return;
+    if (!this.card || this.card.selected || !this.showContent || !this.player) return;
     this.gameStore.playCard(this.player, this.card);
   }
 }

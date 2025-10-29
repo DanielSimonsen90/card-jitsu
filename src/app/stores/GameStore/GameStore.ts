@@ -1,25 +1,24 @@
 import { Subscription } from "rxjs";
 import { Injectable } from "@angular/core";
 
-import type { Player } from "@/models/types";
+import { StoreState } from "@/decorators";
 
+import type { Player } from "@/models/types";
 import type { Broadcast, BroadcastEventCallback, GameState, WinState } from "@/services/BroadcastService/BroadcastService.types";
-import type { Card, Color } from "@/services/CardService/CardService.types";
-import type { ElementalType } from "@/services/ElementalService/ElementalService.types";
+import type { Card } from "@/services/CardService/CardService.types";
 
 import { AiPlayerService } from "@/services/AiPlayerService";
 import { StorageService } from "@/services/StorageService";
 import { TimerService } from "@/services/TimerService";
 import { BroadcastService, CardService, ElementalService } from "@/services/GameServices";
 
-import BaseStore, { StoreState } from "../BaseStore";
+import BaseStore from "../BaseStore";
 import { UserStore } from "../UserStore";
 
 import { onDeclareRoundWinner, onFinishGame, onPlayCard, onUpdateGameState } from './events';
-import { GameProvider } from "@/components/game";
 
 const DEFAULT_ROUND_DURATION_SECONDS = 30;
-const ROUND_END_DELAY_SECONDS = 3;
+export const ROUND_END_DELAY_SECONDS = 3;
 
 type State = {
   gameState: GameState;
@@ -65,8 +64,8 @@ export class GameStore extends BaseStore<State> {
 
   public get players() {
     const players = this.state.players;
-    this.Logger.info('[GET] players', players);
-    
+    // this.Logger.info('[GET] players', players);
+
     if (!players.length && this._gameState !== 'idle') {
       this.Logger.error('No players found!', players);
       this._gameState = 'idle';
@@ -76,9 +75,9 @@ export class GameStore extends BaseStore<State> {
     return players;
   }
   public set players(players: Array<Player>) {
-    this.Logger.info('[SET] players', players);
+    // this.Logger.info('[SET] players', players);
     this.state.players = players;
-    this.Logger.info('Updated players', players).groupEnd();
+    // this.Logger.info('Updated players', players).groupEnd();
   }
 
   public get isActive() {
@@ -91,7 +90,7 @@ export class GameStore extends BaseStore<State> {
     this.Logger.info('[GET] timeLeftOfRound', timeLeft);
     return timeLeft;
   }
-  
+
   public get timeLeft$() {
     return this.timerService.timeLeft$;
   }
@@ -117,7 +116,7 @@ export class GameStore extends BaseStore<State> {
 
     const card = typeof cardResolvable === 'number'
       ? player.cards[cardResolvable]
-      : player.cards.find(c => this.cardService.isSameCard(c, cardResolvable));
+      : player.cards.find(c => c && this.cardService.isSameCard(c, cardResolvable));
 
     if (!card) {
       this.Logger.error('Card not found in player deck!', { card, player }).groupEnd();
@@ -125,6 +124,7 @@ export class GameStore extends BaseStore<State> {
     }
 
     player.activeCard = card;
+    player.cards.splice(player.cards.indexOf(card), 1, null);
 
     this.Logger.info('Updating player state with activeCard', player);
     this.updatePlayer(player);
@@ -262,24 +262,34 @@ export class GameStore extends BaseStore<State> {
   protected startNewRound() {
     this.Logger.groupCollapsed('[GAME ACTION] startNewRound');
 
-    this.players = this.players.map(player => ({
-      ...player,
-      activeCard: null,
-      cards: player.cards.map(card => {
-        if (player.activeCard && this.cardService.isSameCard(card, player.activeCard)) {
-          const newCard = this.cardService.generateCard();
-          this.Logger.info('Replacing active card with new card', { oldCard: card, newCard });
-          return newCard;
-        }
-        return card;
-      })
-    }));
+    this.players = this.players.map(player => {
+      const selectedCardIndex = player.cards.findIndex(c => c === null);
 
-    this.Logger.info('Updated card state for players', this.players).groupEnd();
+      while (selectedCardIndex !== -1) {
+        const newCard = this.cardService.generateCard();
+        if (player.activeCard && this.cardService.isSameCard(newCard, player.activeCard)) {
+          this.Logger.info('Regenerating card to avoid same active card', { oldCard: player.activeCard, newCard });
+          continue;
+        } else if (player.cards.some(c => c && this.cardService.isSameCard(c, newCard))) {
+          this.Logger.info('Regenerating card to avoid duplicate in deck', { deck: player.cards, newCard });
+          continue;
+        }
+
+        player.cards[selectedCardIndex] = newCard;
+        break;
+      }
+
+      return {
+        ...player,
+        activeCard: null,
+      };
+    });
+
+    this.Logger.info('Updated card state for players', this.players);
 
     this.Logger.info('Starting round timer...');
     this.timerService.startTimer(DEFAULT_ROUND_DURATION_SECONDS, () => this.findAndDeclareRoundWinner());
-    this.Logger.info('Round timer started');
+    this.Logger.info('Round timer started').groupEnd();
   }
   protected async findAndDeclareRoundWinner() {
     this.Logger.groupCollapsed('[GAME ACTION] findAndDeclareRoundWinner');
@@ -287,7 +297,7 @@ export class GameStore extends BaseStore<State> {
     await new Promise(resolve => setTimeout(resolve, ROUND_END_DELAY_SECONDS * 1000));
 
     this.Logger.groupCollapsed('Sorting winners...');
-    const winner = this.players
+    const winners = this.players
       .sort((a, b) => {
         if (!a.activeCard || !b.activeCard) {
           this.Logger.warn('Players have no cards!', { a, b }).groupEnd();
@@ -310,8 +320,12 @@ export class GameStore extends BaseStore<State> {
           card: winnerCard
         });
 
-        return winnerCard === a.activeCard ? -1 : 1;
-      })[0]!;
+        return winnerCard === a.activeCard ? -1 : winnerCard === b.activeCard ? 1 : 0;
+      });
+
+    const [a, b] = winners;
+    const winnerCard = (a.activeCard && b.activeCard && this.cardService.determineWinner(a.activeCard, b.activeCard));
+    const winner = (winnerCard === a.activeCard) ? a : (winnerCard === b.activeCard) ? b : null;
 
     this.Logger.groupEnd().info('Winner found', winner);
     this.state.lastWinner = winner;
@@ -343,14 +357,18 @@ export class GameStore extends BaseStore<State> {
       const elementMap = this.cardService.getWinsFromCards(wins);
 
       // Check if player has 3 of the same element or map size is 3
-      const hasThreeOfSameElement = Object.values(elementMap).some(colors => colors.length === 3);
-      const hasThreeDifferentElements = Object.values(elementMap).flat()
+      const hasThreeOfSameElement = Object
+        .values(elementMap)
+        .some(colors => colors.length === 3);
+      const hasThreeDifferentElements = Object
+        .values(elementMap)
+        .flat()
         .filter((color, i, arr) => arr.indexOf(color) === i) // Remove duplicates
         .length === 3;
       if (!hasThreeOfSameElement && !hasThreeDifferentElements) continue;
 
       // Declare game winner
-      this.Logger.info('Game winner found', player);
+      this.Logger.info('Game winner found', player, { hasThreeDifferentElements, hasThreeOfSameElement, wins });
 
       // Broadcast of game winner is handled in onGameStateChange, that later calls onFinishGame
       this.state.lastWinner = player;
@@ -395,12 +413,12 @@ export class GameStore extends BaseStore<State> {
     return this;
   }
   public setCardDeckSize(size: number) {
-    this.cardService.setDeckSize(size);
+    this.cardService.deckSize = size;
     this.Logger.info(`Updated card deck size to ${size}`, this.cardService);
     return this;
   }
   public setMaxCardValue(value: number) {
-    this.cardService.setMaxCardValue(value);
+    this.cardService.maxCardValue = value;
     this.Logger.info(`Updated max card value to ${value}`, this.cardService);
     return this;
   }

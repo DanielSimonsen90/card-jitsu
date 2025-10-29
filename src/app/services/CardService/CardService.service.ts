@@ -24,13 +24,13 @@ export default class CardService {
   ) {}
 
   protected readonly colors: Array<Color> = ['red', 'orange', 'yellow', 'green', 'blue', 'purple'];
-  protected deckSize = DEFAULT_DECK_SIZE;
-  protected maxCardValue = DEFAULT_MAX_CARD_VALUE;
+  protected _deckSize = DEFAULT_DECK_SIZE;
+  protected _maxCardValue = DEFAULT_MAX_CARD_VALUE;
 
   // #region Generate card
   public generateCardDeck(): Array<Card> {
     return Array.from(
-      { length: this.deckSize }, 
+      { length: this._deckSize }, 
       () => this.generateCard()
     );
   }
@@ -50,7 +50,7 @@ export default class CardService {
    * Generates a random value between 1 and 20
    */
   private generateValue(): number {
-    const randomNumber = () => Math.floor(Math.random() * this.maxCardValue) + 1;
+    const randomNumber = () => Math.floor(Math.random() * this._maxCardValue) + 1;
     const values = Array.from({ length: 5 }, randomNumber);
     const result = values.reduce((acc, value) => acc + value, 0) / values.length;
     return Math.round(result);
@@ -112,7 +112,7 @@ export default class CardService {
     const gameWins = cards.reduce((acc, card) => {
       const element = card.type;
       if (!acc[element]) acc[element] = [];
-      // else if (acc[element].includes(card.color)) return acc;
+      else if (acc[element].includes(card.color)) return acc;
 
       acc[element].push(card.color);
       return acc;
@@ -131,24 +131,20 @@ export default class CardService {
   // #endregion
 
   // #region Service Settings
-  /**
-   * Sets the deck size
-   * 
-   * @param size The size of the deck
-   */
-  public setDeckSize(size: number) {
+  public get deckSize(): number {
+    return this._deckSize;
+  }
+  public set deckSize(size: number) {
     if (size < 1) throw new Error('Deck size must be at least 1');
-    this.deckSize = size;
+    this._deckSize = size;
   }
 
-  /**
-   * Sets the max card value
-   * 
-   * @param value The max value of a card
-   */
-  public setMaxCardValue(value: number) {
+  public get maxCardValue(): number {
+    return this._maxCardValue;
+  }
+  public set maxCardValue(value: number) {
     if (value < 1) throw new Error('Max card value must be at least 1');
-    this.maxCardValue = value;
+    this._maxCardValue = value;
   }
   // #endregion
 }

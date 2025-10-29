@@ -1,8 +1,9 @@
 import { GameCard } from '@/services/CardService/CardService.types';
 import { GameStore } from '@/stores';
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, inject, Input } from '@angular/core';
 import { GameCardComponent } from "../GameCard/GameCard.component";
+import { Player } from '@/models/types';
 
 @Component({
   standalone: true,
@@ -16,13 +17,15 @@ import { GameCardComponent } from "../GameCard/GameCard.component";
 })
 
 export class PlayerDeckComponent {
+  @Input() public player: Player | undefined = undefined;
+  @Input() public showContent: boolean = true;
   protected gameStore = inject(GameStore);
 
-  public get deck(): Array<GameCard> {
-    const player = this.gameStore.getCurrentPlayer();
+  public get deck(): Array<GameCard | null> {
+    const player = this.player ?? this.gameStore.getCurrentPlayer();
     const cards = player?.cards ?? [];
     
-    return cards.map(card => ({
+    return cards.map(card => card === null ? card : ({
       ...card,
       selected: (player?.activeCard === card) || false
     }));
