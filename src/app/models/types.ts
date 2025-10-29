@@ -5,4 +5,6 @@ export type Player = {
   cards: Array<Card | null>;
   wins: Array<Card>;
   activeCard: Card | null;
+  isAi: boolean;
+  pfp: string;
 };
