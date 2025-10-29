@@ -16,6 +16,7 @@ import BaseStore from "../BaseStore";
 import { UserStore } from "../UserStore";
 
 import { onDeclareRoundWinner, onFinishGame, onPlayCard, onUpdateGameState } from './events';
+import { ClubPenguinNames } from "@/services/AiPlayerService/AiPlayerService.constants";
 
 const DEFAULT_ROUND_DURATION_SECONDS = 30;
 export const ROUND_END_DELAY_SECONDS = 3;
@@ -55,6 +56,13 @@ export class GameStore extends BaseStore<State> {
   }
   private set _gameState(state: GameState) {
     this.Logger.groupCollapsed('[SET] gameState', state);
+    
+    if (this.state.gameState === state) {
+      this.Logger.warn('Attempted to set same game state, skipping', state);
+      this.Logger.groupEnd();
+      return;
+    }
+    
     this.state.gameState = state;
 
     // this.Logger.info('Broadcasting updateGameState', state);
@@ -131,7 +139,7 @@ export class GameStore extends BaseStore<State> {
 
     this.Logger.info('Checking if ready to update gameState...');
     if (this.players.every(p => p.activeCard)) {
-      this.Logger.groupCollapsed('Check returned true - updating gameState to "check"').groupEnd();
+      this.Logger.info('Check returned true - updating gameState to "check"').groupEnd();
       this._gameState = 'check';
     } else {
       this.Logger.info(`Check returned false - gameState remains "${this.state.gameState}"`).groupEnd();
@@ -140,7 +148,7 @@ export class GameStore extends BaseStore<State> {
   // #endregion
 
   // #region Player Actions
-  protected addPlayer(username: string) {
+  protected addPlayer(username: string, isAi = false): Player {
     this.Logger.groupCollapsed('[PLAYER ACTION] addPlayer', username);
 
     this.players = [
@@ -150,6 +158,8 @@ export class GameStore extends BaseStore<State> {
         wins: [],
         activeCard: null,
         cards: [],
+        pfp: isAi ? this.aiPlayerService.getAiPlayernameWithoutSuffix(username) : this.selectRandomPfp(),
+        isAi,
       }
     ];
 
@@ -214,11 +224,24 @@ export class GameStore extends BaseStore<State> {
     this.Logger.groupEnd();
   }
 
+  protected selectRandomPfp() {
+    const pfps = [
+      'Beta',
+      'Birthday',
+      'Christmas',
+      'The Blogger',
+      'The Sithlord',
+      'Winter'
+    ];
+
+    return pfps[Math.floor(Math.random() * pfps.length)];
+  }
+
   public addAiPlayer() {
     this.Logger.groupCollapsed('[ACTION] addAiPlayer');
 
     const aiPlayer = this.aiPlayerService.createAiPlayer(this, this.broadcastService);
-    const player = this.addPlayer(aiPlayer.name);
+    const player = this.addPlayer(aiPlayer.name, true);
     aiPlayer.player = player;
 
     this.Logger.info('Added AI player', aiPlayer).groupEnd();
@@ -265,18 +288,30 @@ export class GameStore extends BaseStore<State> {
     this.players = this.players.map(player => {
       const selectedCardIndex = player.cards.findIndex(c => c === null);
 
-      while (selectedCardIndex !== -1) {
-        const newCard = this.cardService.generateCard();
-        if (player.activeCard && this.cardService.isSameCard(newCard, player.activeCard)) {
-          this.Logger.info('Regenerating card to avoid same active card', { oldCard: player.activeCard, newCard });
-          continue;
-        } else if (player.cards.some(c => c && this.cardService.isSameCard(c, newCard))) {
-          this.Logger.info('Regenerating card to avoid duplicate in deck', { deck: player.cards, newCard });
-          continue;
-        }
+      if (selectedCardIndex !== -1) {
+        let attempts = 0;
+        const maxAttempts = 100; // Prevent infinite loops
+        
+        while (attempts < maxAttempts) {
+          attempts++;
+          const newCard = this.cardService.generateCard();
+          
+          if (player.activeCard && this.cardService.isSameCard(newCard, player.activeCard)) {
+            this.Logger.info('Regenerating card to avoid same active card', { oldCard: player.activeCard, newCard });
+            continue;
+          } else if (player.cards.some(c => c && this.cardService.isSameCard(c, newCard))) {
+            this.Logger.info('Regenerating card to avoid duplicate in deck', { deck: player.cards, newCard });
+            continue;
+          }
 
-        player.cards[selectedCardIndex] = newCard;
-        break;
+          player.cards[selectedCardIndex] = newCard;
+          break;
+        }
+        
+        if (attempts >= maxAttempts) {
+          this.Logger.error('Failed to generate unique card after max attempts, using random card');
+          player.cards[selectedCardIndex] = this.cardService.generateCard();
+        }
       }
 
       return {
@@ -361,14 +396,14 @@ export class GameStore extends BaseStore<State> {
         .values(elementMap)
         .some(colors => colors.length === 3);
       const hasThreeDifferentElements = Object
-        .values(elementMap)
+        .keys(elementMap)
         .flat()
         .filter((color, i, arr) => arr.indexOf(color) === i) // Remove duplicates
         .length === 3;
       if (!hasThreeOfSameElement && !hasThreeDifferentElements) continue;
 
       // Declare game winner
-      this.Logger.info('Game winner found', player, { hasThreeDifferentElements, hasThreeOfSameElement, wins });
+      this.Logger.info('Game winner found', player, { hasThreeDifferentElements, hasThreeOfSameElement, wins, elementMap });
 
       // Broadcast of game winner is handled in onGameStateChange, that later calls onFinishGame
       this.state.lastWinner = player;
@@ -376,8 +411,12 @@ export class GameStore extends BaseStore<State> {
       return;
     }
 
-    this.Logger.info('No game winners found yet - updating gameState back to "play".').groupEnd();
-    this._gameState = 'play';
+    this.Logger.info('No game winners found yet - updating gameState back to "play" after delay.').groupEnd();
+    
+    // Add a small delay to prevent rapid state cycling
+    setTimeout(() => {
+      this._gameState = 'play';
+    }, 500);
   }
   // #endregion
 

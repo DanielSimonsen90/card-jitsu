@@ -21,8 +21,17 @@ export default class AiPlayer implements Pick<Player, 'name'> {
 
   private playCard() {
     if (!this.player) throw new Error('Player not registered');
-    let playedCard: Card | null = null;
-    while (!playedCard) playedCard = this.player.cards.random();
+    
+    // Get available cards (non-null cards)
+    const availableCards = this.player.cards.filter(card => card !== null);
+    if (availableCards.length === 0) {
+      console.warn('AI Player has no available cards to play');
+      return;
+    }
+    
+    // Select a random available card instead of using infinite loop
+    const randomIndex = Math.floor(Math.random() * availableCards.length);
+    const playedCard = availableCards[randomIndex];
 
     return this.gameStore.playCard(
       this.player,

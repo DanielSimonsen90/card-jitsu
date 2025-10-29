@@ -5,7 +5,7 @@ export const ClubPenguinNames = [
   // Club Penguin Characters
   'Rockhopper',
   'Aunt Arctic', 
-  'PH',
+  'Puffle Handler',
   
   // Card Jitsu Characters
   'Sensei',
@@ -15,7 +15,7 @@ export const ClubPenguinNames = [
   'Tank',
 
   // EPF Characters
-  'Gary',
+  'Gary the Gadget Guy',
   'Dot',
   'Jet Pack Guy',
   'Rookie',
@@ -25,7 +25,7 @@ export const ClubPenguinNames = [
   'Director',
   
   // Penguin Band
-  'Stompin Bob',
+  'Stompin\' Bob',
   'Petey K',
   'G Billy',
   'Franky',

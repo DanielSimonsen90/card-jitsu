@@ -5,14 +5,11 @@ declare global {
 }
 
 Array.prototype.random = function() {
-  const getRandomIndex = () => Math.floor(Math.random() * this.length);
-  const randomIndex = (() => {
-    while (true) {
-      const index = getRandomIndex();
-      if (index >= 0 && index < this.length) return index;
-    }
-  })();
-
+  if (this.length === 0) {
+    throw new Error('Cannot get random element from empty array');
+  }
+  
+  const randomIndex = Math.floor(Math.random() * this.length);
   return this[randomIndex];
 };
 

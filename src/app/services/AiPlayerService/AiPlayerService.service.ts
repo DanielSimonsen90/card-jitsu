@@ -33,6 +33,11 @@ export class AiPlayerService {
     return this.aiPlayers.some(p => p.name === player.name);
   }
 
+  public getAiPlayernameWithoutSuffix(fullName: string) {
+    const match = fullName.match(/^(.*?)-\d{4}$/);
+    return match ? match[1] : fullName;
+  }
+
   private generateAiPlayerName() {
     let name = '';
     while (name === '' || this.aiPlayers.some(p => p.name.startsWith(name))) {
