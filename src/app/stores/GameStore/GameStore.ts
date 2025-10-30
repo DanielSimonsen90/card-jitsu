@@ -56,13 +56,13 @@ export class GameStore extends BaseStore<State> {
   }
   private set _gameState(state: GameState) {
     this.Logger.groupCollapsed('[SET] gameState', state);
-    
+
     if (this.state.gameState === state) {
       this.Logger.warn('Attempted to set same game state, skipping', state);
       this.Logger.groupEnd();
       return;
     }
-    
+
     this.state.gameState = state;
 
     // this.Logger.info('Broadcasting updateGameState', state);
@@ -288,30 +288,19 @@ export class GameStore extends BaseStore<State> {
     this.players = this.players.map(player => {
       const selectedCardIndex = player.cards.findIndex(c => c === null);
 
-      if (selectedCardIndex !== -1) {
-        let attempts = 0;
-        const maxAttempts = 100; // Prevent infinite loops
-        
-        while (attempts < maxAttempts) {
-          attempts++;
-          const newCard = this.cardService.generateCard();
-          
-          if (player.activeCard && this.cardService.isSameCard(newCard, player.activeCard)) {
-            this.Logger.info('Regenerating card to avoid same active card', { oldCard: player.activeCard, newCard });
-            continue;
-          } else if (player.cards.some(c => c && this.cardService.isSameCard(c, newCard))) {
-            this.Logger.info('Regenerating card to avoid duplicate in deck', { deck: player.cards, newCard });
-            continue;
-          }
+      while (selectedCardIndex !== -1) {
+        const newCard = this.cardService.generateCard();
 
-          player.cards[selectedCardIndex] = newCard;
-          break;
+        if (player.activeCard && this.cardService.isSameCard(newCard, player.activeCard)) {
+          this.Logger.info('Regenerating card to avoid same active card', { oldCard: player.activeCard, newCard });
+          continue;
+        } else if (player.cards.some(c => c && this.cardService.isSameCard(c, newCard))) {
+          this.Logger.info('Regenerating card to avoid duplicate in deck', { deck: player.cards, newCard });
+          continue;
         }
-        
-        if (attempts >= maxAttempts) {
-          this.Logger.error('Failed to generate unique card after max attempts, using random card');
-          player.cards[selectedCardIndex] = this.cardService.generateCard();
-        }
+
+        player.cards[selectedCardIndex] = newCard;
+        break;
       }
 
       return {
@@ -376,7 +365,7 @@ export class GameStore extends BaseStore<State> {
           'loss'
     );
 
-    this.Logger.info('Broadcasting winner', { winner, winState });
+    this.Logger.info('Broadcasting winner', { winner, winState }).groupEnd();
     this.broadcastService.emit('declareRoundWinner', winState, winner, winner?.activeCard ?? null);
   }
   protected checkGameWinner() {
@@ -412,7 +401,7 @@ export class GameStore extends BaseStore<State> {
     }
 
     this.Logger.info('No game winners found yet - updating gameState back to "play" after delay.').groupEnd();
-    
+
     // Add a small delay to prevent rapid state cycling
     setTimeout(() => {
       this._gameState = 'play';

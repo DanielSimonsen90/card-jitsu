@@ -2,8 +2,8 @@
 
 <ng-template #lobby>
   <div class="lobby">
-    <p class="conclusion" *ngIf="roundConclusionText">{{ roundConclusionText }}</p>
     <main>
+      <p class="conclusion" *ngIf="roundConclusionText">{{ roundConclusionText }}</p>
       <button class="brand primary" (click)="onStartGameClicked()">
         Start playing {{ SITE_NAME }}
       </button>

@@ -1,4 +1,4 @@
-<div *ngIf="!card" class="game-card"></div>
+<div *ngIf="!card" class="game-card" [attr.data-show-content]="showContent"></div>
 
 <div *ngIf="card" class="game-card" 
   [class.game-card--winner]="isWinner"
@@ -6,13 +6,10 @@
   [style.background-color]="card.color"
   (click)="onClick()"
 >
-  <div *ngIf="showContent" class="game-card__content" 
-    [attr.data-type]="card.type"
+  <div  class="game-card__content" 
+    [attr.data-show-content]="showContent"
   >
-    <p>{{ card.value }}</p>
-    <p *ngIf="isWinner">Winner!</p>
-
-    <!-- TODO: Render elemental type icon -->
-    <b>{{ card.type }}</b>
+    <img *ngIf="showContent" class="game-card__element-type" src="/assets/cards/{{card.type}}.webp" alt="{{ card.type }}" />
+    <p *ngIf="showContent" class="game-card__value">{{ card.value }}</p>
   </div>
 </div>

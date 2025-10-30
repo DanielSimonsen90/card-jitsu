@@ -7,14 +7,23 @@
   --width: 5rem;
   width: var(--width);
   height: calc(var(--width) * 1.5);
-  padding: .6em;
+  padding: 1em;
   border-radius: .5em;
 
   background-color: var(--background-secondary);
   filter: drop-shadow(0 0 .5em var(--background-secondary));
 
-  &--winner {
-    border: .25em solid #ffe46d;
+
+  &:has(.game-card__content[data-show-content=false]) {
+    background-color: transparent;
+    background-image: url('/assets/cards/background.webp');
+    background-size: cover;
+    background-position: center;
+  }
+
+  // Good
+  &:has(.game-card__content[data-show-content=true]) {
+    background-image: none;
   }
 
   &__content {
@@ -25,26 +34,47 @@
     justify-content: center;
     gap: .25ch;
 
-    background-color: var(--background-secondary);
     padding: 1em;
     width: 50%;
     height: 66%;
     border-radius: .5em;
 
+    &:has(>*) {
+      background-color: rgba(0, 0, 0, 0.2);
+    }
+
     * {
       text-align: center;
     }
+
+  }
+
+  &__element-type {
+    --_offset: .25rem;
+    top: var(--_offset);
+    left: var(--_offset);
+
+    --size: 1rem;
+    height: var(--size);
+
+    position: absolute;
+
+  }
+
+  &__value {
+    font-size: 2rem;
+    font-weight: bold;
   }
 }
 
-[data-type=fire] {
-  color: var(--element-fire);
-}
+$elements: (
+  fire,
+  water,
+  ice
+);
 
-[data-type=water] {
-  color: var(--element-water);
-}
-
-[data-type=ice] {
-  color: var(--element-ice);
+@each $element in $elements {
+  [data-type=#{$element}] {
+    color: var(--element-#{$element});
+  }
 }
