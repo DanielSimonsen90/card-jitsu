@@ -1,5 +1,9 @@
-<ol class="deck">
-  <li *ngFor="let card of deck" class="card">
-    <gamecard [card]="card" [showContent]="showContent"></gamecard>
-  </li>
-</ol>
+<section class="player-deck" [attr.data-opponent]="isOpponent">
+  <app-player-entry [player]="player"></app-player-entry>
+  <app-player-wins [player]="player"> </app-player-wins>
+  <ol class="deck">
+    <li *ngFor="let card of deck" class="card">
+      <gamecard [card]="card" [showContent]="showContent"></gamecard>
+    </li>
+  </ol>
+</section>

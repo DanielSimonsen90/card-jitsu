@@ -2,13 +2,14 @@ import { GameStore } from '@/stores';
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { Player } from '@/models/types';
+import { PlayerEntryComponent } from '../PlayerEntry';
 
 @Component({
   standalone: true,
   selector: 'playerlist',
   templateUrl: 'Playerlist.component.html',
   styleUrl: 'Playerlist.component.scss',
-  imports: [CommonModule],
+  imports: [CommonModule, PlayerEntryComponent],
 })
 
 export class PlayerlistComponent {

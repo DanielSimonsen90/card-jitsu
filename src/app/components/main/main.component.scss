@@ -23,6 +23,11 @@
 .game-header {
   display: grid;
   place-items: center;
+}
+
+.player-wins {
+  display: grid;
+  place-items: center;
   grid-auto-flow: column;
   grid-template-columns: repeat(3, 1fr);
   width: 100%;
@@ -34,12 +39,14 @@
 }
 
 .player-decks { 
-  display: grid;
-  grid-template-rows: repeat(auto-fill, minmax(200px, 1fr));
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
   gap: 1rem;
   padding: 0;
 
   li {
+    display: flex;
     list-style: none;
   }
 }

@@ -7,7 +7,7 @@ import { Component, inject, Input } from '@angular/core';
 
 @Component({
   standalone: true,
-  selector: 'player-wins',
+  selector: 'app-player-wins',
   templateUrl: 'PlayerWins.component.html',
   styleUrl: 'PlayerWins.component.scss',
   imports: [

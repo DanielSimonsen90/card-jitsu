@@ -1,5 +1,5 @@
 <ul class="player-wins">
-  <ul class="elemental-type" *ngFor="let elementalType of elementalTypes">
+  <ul class="elemental-type" *ngFor="let elementalType of elementalTypes" [attr.data-elemental-type]="elementalType">
     <li class="color" *ngFor="let color of wins[elementalType]" [style.background-color]="color">
       <img class="element-icon" src="/assets/cards/{{elementalType}}.webp" alt="{{ elementalType }}" />
     </li>

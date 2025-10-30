@@ -1,8 +1,7 @@
 <div class="playerlist-container">
   <ul class="playerlist">
     <li class="player" *ngFor="let player of players" (click)="removePlayer(player)">
-      <img class="pfp" src="/assets/{{player.isAi ? 'mascots' : 'pfps'}}/{{player.pfp}}.{{player.isAi ? 'webp' : 'png'}}" alt="{{ player.name }}'s profile picture" />
-      <p>{{player.name}}</p>
+      <app-player-entry [player]="player"></app-player-entry>
     </li>
   </ul>
   <div class="button-container">

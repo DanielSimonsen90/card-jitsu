@@ -8,19 +8,4 @@
   padding: 0;
   display: grid;
   gap: 1rem;
-
-  .player {
-    display: grid;
-    grid-template-columns: 3rem 1fr;
-    gap: 0.5rem;
-    align-items: center;
-  }
-}
-
-.pfp {
-  --size: 3rem;
-  width: var(--size);
-  height: var(--size);
-  border-radius: 50%;
-  object-fit: contain;
 }

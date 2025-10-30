@@ -24,7 +24,7 @@ const Logger = LoggerService.createComponentLogger('Main');
     CommonModule,
     PlayerlistComponent,
 
-    PlayerWinsComponent, GameTimerComponent,
+    GameTimerComponent,
     GameCardComponent, PlayerDeckComponent,
   ],
 })

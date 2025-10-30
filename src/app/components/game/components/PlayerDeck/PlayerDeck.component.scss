@@ -1,5 +1,19 @@
+.player-deck {
+  display: grid;
+  grid-template-columns: auto 7rem 1fr;
+  align-items: center;
+  gap: 2em;
+
+  &[data-opponent=true] {
+    .game-card {
+      --size: 2rem;
+    }
+  }
+}
+
 .deck {
   list-style-type: none;
   display: flex;
   gap: 1em;
+  padding: 0;
 }

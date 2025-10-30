@@ -1,9 +1,11 @@
 import { GameCard } from '@/services/CardService/CardService.types';
 import { GameStore } from '@/stores';
 import { CommonModule } from '@angular/common';
-import { Component, inject, Input } from '@angular/core';
+import { Component, inject, Input, OnInit } from '@angular/core';
 import { GameCardComponent } from "../GameCard/GameCard.component";
 import { Player } from '@/models/types';
+import { PlayerEntryComponent } from '../PlayerEntry';
+import { PlayerWinsComponent } from '../PlayerWins';
 
 @Component({
   standalone: true,
@@ -12,12 +14,14 @@ import { Player } from '@/models/types';
   styleUrl: 'PlayerDeck.component.scss',
   imports: [
     CommonModule,
-    GameCardComponent
+    GameCardComponent,
+    PlayerEntryComponent,
+    PlayerWinsComponent
   ],
 })
 
-export class PlayerDeckComponent {
-  @Input() public player: Player | undefined = undefined;
+export class PlayerDeckComponent implements OnInit {
+  @Input() public player: Player = undefined as any;
   @Input() public showContent: boolean = true;
   protected gameStore = inject(GameStore);
 
@@ -29,5 +33,20 @@ export class PlayerDeckComponent {
       ...card,
       selected: (player?.activeCard === card) || false
     }));
+  }
+  public get isOpponent(): boolean {
+    const currentPlayer = this.gameStore.getCurrentPlayer();
+    if (!currentPlayer) return false;
+
+    return this.player.name !== currentPlayer.name;
+  }
+
+  public ngOnInit(): void {
+    if (!this.player) {
+      const currentPlayer = this.gameStore.getCurrentPlayer();
+      if (!currentPlayer) throw new Error('No player provided and no current player found in GameStore.');
+
+      this.player = currentPlayer;
+    }
   }
 }

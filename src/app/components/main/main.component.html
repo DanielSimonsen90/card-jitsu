@@ -16,9 +16,7 @@
 
 <ng-template #game>
   <header class="game-header">
-    <player-wins *ngFor="let opponent of opponents" [player]="opponent" />
     <game-timer />
-    <player-wins [player]="currentPlayer" />
   </header>
 
   <section class="sub-header">

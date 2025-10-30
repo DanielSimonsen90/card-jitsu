@@ -5,7 +5,7 @@ import { StoreState } from "@/decorators";
 
 import type { Player } from "@/models/types";
 import type { Broadcast, BroadcastEventCallback, GameState, WinState } from "@/services/BroadcastService/BroadcastService.types";
-import type { Card } from "@/services/CardService/CardService.types";
+import type { Card, Color } from "@/services/CardService/CardService.types";
 
 import { AiPlayerService } from "@/services/AiPlayerService";
 import { StorageService } from "@/services/StorageService";
@@ -326,7 +326,9 @@ export class GameStore extends BaseStore<State> {
     await new Promise(resolve => setTimeout(resolve, ROUND_END_DELAY_SECONDS * 1000));
 
     this.Logger.groupCollapsed('Sorting winners...');
-    const winners = this.players
+    const players = [...this.players]
+    const winners = players
+      .sort(() => Math.random() - 0.5) // Shuffle to prevent entry order bias
       .sort((a, b) => {
         if (!a.activeCard && !b.activeCard) {
           this.Logger.warn('Players have no cards!', { a, b }).groupEnd();
@@ -396,11 +398,14 @@ export class GameStore extends BaseStore<State> {
       const hasThreeOfSameElement = Object
         .values(elementMap)
         .some(colors => colors.length === 3);
-      const hasThreeDifferentElements = Object
-        .keys(elementMap)
+        
+      // Check if player has 3 different elements but not of the same color
+      const hasThreeDifferentElements = Object.keys(elementMap).length === 3 && Object
+        .values(elementMap)
         .flat()
-        .filter((color, i, arr) => arr.indexOf(color) === i) // Remove duplicates
+        .filter((color, index, arr) => arr.indexOf(color) === index) // Get unique colors
         .length === 3;
+        
       if (!hasThreeOfSameElement && !hasThreeDifferentElements) continue;
 
       // Declare game winner
