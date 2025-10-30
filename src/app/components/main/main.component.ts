@@ -48,7 +48,10 @@ export class MainComponent implements OnInit, OnDestroy {
     return this.gameStore.isActive;
   }
   public get shouldShowActiveCardContent() {
-    return this.gameStore.state.gameState === 'check';
+    return (
+      this.gameStore.state.gameState !== 'deal'
+      && this.gameStore.state.gameState !== 'play'
+    );
   }
 
   public get opponents() {

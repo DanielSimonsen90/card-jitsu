@@ -26,7 +26,7 @@ export class TimerService {
   public startTimer(seconds: number, callback?: TimerCallback): void {
     this.stopTimer();
     
-    if (callback) this.callbacks.push(callback);
+    if (callback && !this.callbacks.includes(callback)) this.callbacks.push(callback);
     
     let timeLeft = seconds;
     this.timerSubject.next(timeLeft);

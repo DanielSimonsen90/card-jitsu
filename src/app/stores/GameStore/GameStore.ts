@@ -45,6 +45,8 @@ export class GameStore extends BaseStore<State> {
     protected timerService: TimerService,
   ) {
     super(storageService, 'Game');
+
+    this.onTimerExpired = this.onTimerExpired.bind(this);
   }
 
   protected aiPlayerService = new AiPlayerService();
@@ -312,8 +314,11 @@ export class GameStore extends BaseStore<State> {
     this.Logger.info('Updated card state for players', this.players);
 
     this.Logger.info('Starting round timer...');
-    this.timerService.startTimer(DEFAULT_ROUND_DURATION_SECONDS, () => this.findAndDeclareRoundWinner());
+    this.timerService.startTimer(DEFAULT_ROUND_DURATION_SECONDS, this.onTimerExpired);
     this.Logger.info('Round timer started').groupEnd();
+  }
+  private onTimerExpired() {
+    this._gameState = 'check';
   }
   protected async findAndDeclareRoundWinner() {
     this.Logger.groupCollapsed('[GAME ACTION] findAndDeclareRoundWinner');
@@ -323,7 +328,7 @@ export class GameStore extends BaseStore<State> {
     this.Logger.groupCollapsed('Sorting winners...');
     const winners = this.players
       .sort((a, b) => {
-        if (!a.activeCard || !b.activeCard) {
+        if (!a.activeCard && !b.activeCard) {
           this.Logger.warn('Players have no cards!', { a, b }).groupEnd();
           return 0;
         }
@@ -340,7 +345,7 @@ export class GameStore extends BaseStore<State> {
 
         const winnerCard = this.cardService.determineWinner(a.activeCard, b.activeCard);
         this.Logger.info('Determined winner', {
-          winner: winnerCard === a.activeCard ? a : b,
+          winner: winnerCard === a.activeCard ? a : winnerCard === b.activeCard ? b : null,
           card: winnerCard
         });
 
@@ -348,10 +353,17 @@ export class GameStore extends BaseStore<State> {
       });
 
     const [a, b] = winners;
-    const winnerCard = (a.activeCard && b.activeCard && this.cardService.determineWinner(a.activeCard, b.activeCard));
+    const winnerCard = (
+      a.activeCard && b.activeCard
+        ? this.cardService.determineWinner(a.activeCard, b.activeCard)
+        : a.activeCard || b.activeCard
+    );
     const winner = (winnerCard === a.activeCard) ? a : (winnerCard === b.activeCard) ? b : null;
 
-    this.Logger.groupEnd().info('Winner found', winner);
+    this.Logger
+      .info(`${winner?.name ?? 'No one'} wins`, { winnerCard, a, b })
+      .groupEnd()
+      .info('Winner found', { winner, winnerCard });
     this.state.lastWinner = winner;
 
     if (winner && winner.activeCard) {
