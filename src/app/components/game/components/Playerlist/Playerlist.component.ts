@@ -16,7 +16,7 @@ export class PlayerlistComponent {
   protected gameStore = inject(GameStore);
 
   public get players() {
-    return this.gameStore.__state.players;
+    return this.gameStore.players;
   }
 
   public removePlayer(player: Player) {

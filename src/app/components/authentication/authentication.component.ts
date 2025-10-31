@@ -25,7 +25,7 @@ export default class AuthenticationComponent implements OnInit {
   
   constructor() {
     effect(() => {
-      const username = this.userStore.__state.username; // Read signal value
+      const username = this.userStore.user.username; // Read signal value
       Logger.info('Username updated', username);
     });
   }
@@ -36,7 +36,7 @@ export default class AuthenticationComponent implements OnInit {
 
   public get isAuthenticated() {
     const value = this.userStore.hasValidUser();
-    Logger.info('this.isAuthenticated', value, this.userStore.__state.username);
+    Logger.info('this.isAuthenticated', value, this.userStore.user.username);
     return value;
   }
 }

@@ -4,8 +4,6 @@ import { Card, Color, GameWins } from "./CardService.types";
 import { ElementalType } from "../ElementalService/ElementalService.types";
 import SettingsStore from "@/stores/SettingsStore/SettingsStore";
 
-
-
 /**
  * CardService is in charge of generating and dealing cards for the players
  * Additionally, also responsible to determine which card wins a duel, by using the ElementalService

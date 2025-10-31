@@ -55,7 +55,7 @@ export class MainComponent implements OnInit, OnDestroy {
   }
 
   public get opponents() {
-    return this.gameStore.__state.players
+    return this.gameStore.players
       .filter(p => p !== this.currentPlayer);
   }
   public get currentPlayer() {
@@ -64,13 +64,13 @@ export class MainComponent implements OnInit, OnDestroy {
 
     Logger.error('No current player', {
       getCurrentPlayerResult: player,
-      players: this.gameStore.__state.players,
+      players: this.gameStore.players,
       gameStore: this.gameStore,
     });
     throw new Error('No current player');
   }
   public get activeCards() {
-    return this.gameStore.__state.players
+    return this.gameStore.players
       // sort so currentPlayer is first in list
       .sort((a, b) => a === this.currentPlayer ? 1 : -1)
       // Only include players with active cards
