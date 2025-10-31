@@ -4,6 +4,7 @@
       <app-player-entry [player]="player"></app-player-entry>
     </li>
   </ul>
+
   <div class="button-container">
     <button class="secondary" (click)="onAddAiPlayerClicked()">
       <i class="fas fa-robot"></i>
@@ -14,4 +15,12 @@
       <span>Open Settings</span>
     </button>
   </div>
+
+  <app-modal-dialog 
+    title="Settings"
+    [isOpen]="isSettingsModalOpen" 
+    (closeModal)="onCloseSettingsModal()"
+  >
+    <app-settings-content></app-settings-content>
+  </app-modal-dialog>
 </div>

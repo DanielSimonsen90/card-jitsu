@@ -1,0 +1,19 @@
+<dialog 
+  #dialogElement
+  class="modal" 
+  (click)="onBackdropClick($event)"
+  (keydown)="onEscapeKey($event)"
+>
+  <div class="modal__dialog" role="dialog" aria-modal="true">
+    <header class="modal__header">
+      <h2 class="modal__title" *ngIf="title">{{ title }}</h2>
+      <button type="button" class="close" aria-label="Close modal" title="Close modal" (click)="close()">
+        &times;
+      </button>
+    </header>
+
+    <section class="modal__body">
+      <ng-content></ng-content>
+    </section>
+  </div>
+</dialog>

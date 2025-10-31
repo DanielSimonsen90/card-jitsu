@@ -3,17 +3,20 @@ import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { Player } from '@/models/types';
 import { PlayerEntryComponent } from '../PlayerEntry';
+import { ModalComponent } from '@/components/shared/modal';
+import { SettingsContentComponent } from './components/SettingsContent';
 
 @Component({
   standalone: true,
   selector: 'playerlist',
   templateUrl: 'Playerlist.component.html',
   styleUrl: 'Playerlist.component.scss',
-  imports: [CommonModule, PlayerEntryComponent],
+  imports: [CommonModule, PlayerEntryComponent, ModalComponent, SettingsContentComponent],
 })
 
 export class PlayerlistComponent {
   protected gameStore = inject(GameStore);
+  public isSettingsModalOpen = false;
   
   public get players() {
     return this.gameStore.players;
@@ -29,7 +32,12 @@ export class PlayerlistComponent {
   public onAddAiPlayerClicked() {
     this.gameStore.addAiPlayer();
   }
+  
   public onOpenSettingsClicked() {
-    throw new Error('Method not implemented.');
+    this.isSettingsModalOpen = true;
+  }
+  
+  public onCloseSettingsModal() {
+    this.isSettingsModalOpen = false;
   }
 }
