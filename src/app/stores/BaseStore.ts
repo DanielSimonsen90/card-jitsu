@@ -8,7 +8,7 @@ export default abstract class BaseStore<State extends object> {
     protected storageService: StorageService,
     tag: string,
   ) {
-    this.Logger = LoggerService.createStoreLogger(tag);
+    this.__logger = LoggerService.createStoreLogger(tag);
 
     if (InjectStorePropertiesKey in this && typeof this[InjectStorePropertiesKey] === 'function') {
       // this.Logger.info('Injecting store properties', this);
@@ -16,44 +16,44 @@ export default abstract class BaseStore<State extends object> {
     }
   }
 
-  protected readonly Logger: ReturnType<typeof LoggerService.createStoreLogger>;
-  public state = {} as State;
+  protected readonly __logger: ReturnType<typeof LoggerService.createStoreLogger>;
+  protected __state = {} as State;
   
   public toJSON(): object {
-    return {};
+    return this.__state;
   }
 
   public save() {
-    this.Logger.groupCollapsed('Requested save');
+    this.__logger.groupCollapsed('Requested save');
 
     const json = JSON.stringify(this.toJSON());
-    if (json === '{}') this.Logger.warn('toJSON function was not overloaded or returned blank object.');
+    if (json === '{}') this.__logger.warn('toJSON function was not overloaded or returned blank object.');
 
     this.storageService.setItem(this.constructor.name, json);
 
-    this.Logger.info('Saved JSON to storage', json).groupEnd();
+    this.__logger.info('Saved JSON to storage', json).groupEnd();
   }
 
   private _loaded = false;
   public load() {
-    this.Logger.groupCollapsed('Requested load');
+    this.__logger.groupCollapsed('Requested load');
     if (this._loaded) {
-      this.Logger.info('Already loaded', this).groupEnd();
+      this.__logger.info('Already loaded', this).groupEnd();
       return;
     }
     this._loaded = true;
 
     const localStateJson = this.storageService.getItem(this.constructor.name);
     if (!localStateJson) {
-      this.Logger.info('No data found in storage', this).groupEnd();
+      this.__logger.info('No data found in storage', this).groupEnd();
       return;
     }
 
     const localState = JSON.parse(localStateJson);
-    this.Logger.info('Loaded data from storage', localState);
+    this.__logger.info('Loaded data from storage', localState);
 
     Object.keys(localState).forEach(key => {
-      const state = this.state;
+      const state = this.__state;
 
       if (key in state) {
         if (typeof state[key as keyof typeof state] !== typeof localState[key]) {
@@ -62,38 +62,38 @@ export default abstract class BaseStore<State extends object> {
           state[key as keyof typeof state] = localState[key];
         }
       } else {
-        this.Logger.warn('Key not found in store', key);
+        this.__logger.warn('Key not found in store', key);
       }
     });
 
-    this.Logger.info('Loading completed', this).groupEnd();
+    this.__logger.info('Loading completed', this).groupEnd();
   }
   public delete() {
-    this.Logger.groupCollapsed('Requested delete');
+    this.__logger.groupCollapsed('Requested delete');
     this.storageService.removeItem(this.constructor.name);
-    this.Logger.info('Deleted data from storage', this.constructor.name);
+    this.__logger.info('Deleted data from storage', this.constructor.name);
 
     this.reset();
-    this.Logger.groupEnd();
+    this.__logger.groupEnd();
   }
   public reset() {
-    this.Logger.groupCollapsed('Requested reset');
+    this.__logger.groupCollapsed('Requested reset');
 
     const defaultState = this.getDefaultState();
     if (!defaultState) {
-      this.Logger.warn('No default state found, skipping');
+      this.__logger.warn('No default state found, skipping');
       return;
     }
 
-    Object.assign(this.state, defaultState);
+    Object.assign(this.__state, defaultState);
 
-    this.Logger.info('Reset to default state', this).groupEnd();
+    this.__logger.info('Reset to default state', this).groupEnd();
   }
 
   public getDefaultState(): Partial<this> | null {
     if ('_defaultState' in this) return this._defaultState as Partial<this>;
 
-    return Object.keys(this.state)
+    return Object.keys(this.__state)
       .filter(key => (
         !key.startsWith('_') &&
         typeof this[key as keyof this] !== 'function' &&

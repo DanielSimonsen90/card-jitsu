@@ -14,7 +14,7 @@ export default class LogoutComponent {
   private userStore = inject(UserStore);
   
   public get username() {
-    return this.userStore.state.username;
+    return this.userStore.__state.username;
   }
   public get shouldRender() {
     return this.userStore.hasValidUser();

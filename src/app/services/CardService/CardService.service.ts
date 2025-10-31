@@ -2,10 +2,9 @@ import { Injectable } from "@angular/core";
 import ElementalService from "../ElementalService";
 import { Card, Color, GameWins } from "./CardService.types";
 import { ElementalType } from "../ElementalService/ElementalService.types";
-import { GameProvider } from "@/components/game";
+import SettingsStore from "@/stores/SettingsStore/SettingsStore";
 
-const DEFAULT_DECK_SIZE = 5;
-const DEFAULT_MAX_CARD_VALUE = 20;
+
 
 /**
  * CardService is in charge of generating and dealing cards for the players
@@ -20,17 +19,16 @@ const DEFAULT_MAX_CARD_VALUE = 20;
 @Injectable()
 export default class CardService {
   constructor(
-    private readonly elementalService: ElementalService
+    private readonly elementalService: ElementalService,
+    private readonly settingsStore: SettingsStore
   ) {}
 
   protected readonly colors: Array<Color> = ['red', 'orange', 'yellow', 'green', 'blue', 'purple'];
-  protected _deckSize = DEFAULT_DECK_SIZE;
-  protected _maxCardValue = DEFAULT_MAX_CARD_VALUE;
 
   // #region Generate card
   public generateCardDeck(): Array<Card> {
     return Array.from(
-      { length: this._deckSize }, 
+      { length: this.settingsStore.deck.size }, 
       () => this.generateCard()
     );
   }
@@ -50,10 +48,8 @@ export default class CardService {
    * Generates a random value between 1 and 20
    */
   private generateValue(): number {
-    const randomNumber = () => Math.floor(Math.random() * this._maxCardValue) + 1;
-    const values = Array.from({ length: 5 }, randomNumber);
-    const result = values.reduce((acc, value) => acc + value, 0) / values.length;
-    return Math.round(result);
+    const { minValue, maxValue } = this.settingsStore.cards;
+    return Math.floor(Math.random() * (maxValue - minValue + 1)) + minValue;
   }
 
   /**
@@ -127,24 +123,6 @@ export default class CardService {
       a.type === b.type &&
       a.color === b.color
     )
-  }
-  // #endregion
-
-  // #region Service Settings
-  public get deckSize(): number {
-    return this._deckSize;
-  }
-  public set deckSize(size: number) {
-    if (size < 1) throw new Error('Deck size must be at least 1');
-    this._deckSize = size;
-  }
-
-  public get maxCardValue(): number {
-    return this._maxCardValue;
-  }
-  public set maxCardValue(value: number) {
-    if (value < 1) throw new Error('Max card value must be at least 1');
-    this._maxCardValue = value;
   }
   // #endregion
 }

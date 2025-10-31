@@ -1,7 +1,7 @@
 import CreateEventHandler from "./_CreateEventHandler";
 
 export default CreateEventHandler('updateGameState', function (gameState) {
-  this.Logger.info('[EVENT] updateGameState', gameState);
+  this.__logger.info('[EVENT] updateGameState', gameState);
 
   switch (gameState) {
     // The store was initialized
@@ -18,7 +18,7 @@ export default CreateEventHandler('updateGameState', function (gameState) {
     case 'check': this.findAndDeclareRoundWinner(); break;
 
     // The game has finished and a winner has been declared
-    case 'finish': this.broadcastService.emit('finishGame', this.state.lastWinner); break;
+    case 'finish': this.broadcastService.emit('finishGame', this.__state.lastWinner); break;
 
     // Invalid game state
     default: throw new Error(`Invalid game state: ${gameState}`);

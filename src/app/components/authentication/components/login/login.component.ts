@@ -19,7 +19,7 @@ export default class LoginComponent implements OnInit {
   public username: string | undefined;
 
   public ngOnInit(): void {
-    this.username = this._userStore.state.username;
+    this.username = this._userStore.__state.username;
   }
 
   public onSubmit() {

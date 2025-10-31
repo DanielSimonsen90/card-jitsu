@@ -5,7 +5,7 @@ import { StoreState } from "@/decorators";
 
 import type { Player } from "@/models/types";
 import type { Broadcast, BroadcastEventCallback, GameState, WinState } from "@/services/BroadcastService/BroadcastService.types";
-import type { Card, Color } from "@/services/CardService/CardService.types";
+import type { Card } from "@/services/CardService/CardService.types";
 
 import { AiPlayerService } from "@/services/AiPlayerService";
 import { StorageService } from "@/services/StorageService";
@@ -13,19 +13,17 @@ import { TimerService } from "@/services/TimerService";
 import { BroadcastService, CardService, ElementalService } from "@/services/GameServices";
 
 import BaseStore from "../BaseStore";
-import { UserStore } from "../UserStore";
+import UserStore from "../UserStore";
+import SettingsStore from "../SettingsStore";
 
 import { onDeclareRoundWinner, onFinishGame, onPlayCard, onUpdateGameState } from './events';
-import { ClubPenguinNames } from "@/services/AiPlayerService/AiPlayerService.constants";
 
-const DEFAULT_ROUND_DURATION_SECONDS = 30;
 export const ROUND_END_DELAY_SECONDS = 3;
 
 type State = {
   gameState: GameState;
   players: Array<Player>;
   lastWinner: Player | null;
-  aiPlayerNames: Array<string>;
 };
 
 @Injectable()
@@ -33,12 +31,14 @@ type State = {
   gameState: 'idle',
   players: [],
   lastWinner: null,
-  aiPlayerNames: [],
 })
 export class GameStore extends BaseStore<State> {
   constructor(
     storageService: StorageService,
+    
     protected userStore: UserStore,
+    protected settingsStore: SettingsStore,
+
     protected broadcastService: BroadcastService,
     protected cardService: CardService,
     protected elementalService: ElementalService,
@@ -52,33 +52,33 @@ export class GameStore extends BaseStore<State> {
   protected aiPlayerService = new AiPlayerService();
 
   // #region Getters & Setters
-  private get _gameState() {
+  public get gameState() {
     // this.Logger.info('[GET] gameState', this.state.gameState);
-    return this.state.gameState;
+    return this.__state.gameState;
   }
-  private set _gameState(state: GameState) {
-    this.Logger.groupCollapsed('[SET] gameState', state);
+  protected set gameState(state: GameState) {
+    this.__logger.groupCollapsed('[SET] gameState', state);
 
-    if (this.state.gameState === state) {
-      this.Logger.warn('Attempted to set same game state, skipping', state);
-      this.Logger.groupEnd();
+    if (this.__state.gameState === state) {
+      this.__logger.warn('Attempted to set same game state, skipping', state);
+      this.__logger.groupEnd();
       return;
     }
 
-    this.state.gameState = state;
+    this.__state.gameState = state;
 
     // this.Logger.info('Broadcasting updateGameState', state);
     this.broadcastService.emit('updateGameState', state);
-    this.Logger.groupEnd();
+    this.__logger.groupEnd();
   }
 
   public get players() {
-    const players = this.state.players;
+    const players = this.__state.players;
     // this.Logger.info('[GET] players', players);
 
-    if (!players.length && this._gameState !== 'idle') {
-      this.Logger.error('No players found!', players);
-      this._gameState = 'idle';
+    if (!players.length && this.gameState !== 'idle') {
+      this.__logger.error('No players found!', players);
+      this.gameState = 'idle';
       throw new Error('No players found! Game state reset to "idle"');
     }
 
@@ -86,18 +86,18 @@ export class GameStore extends BaseStore<State> {
   }
   public set players(players: Array<Player>) {
     // this.Logger.info('[SET] players', players);
-    this.state.players = players;
+    this.__state.players = players;
     // this.Logger.info('Updated players', players).groupEnd();
   }
 
   public get isActive() {
-    const isActive = this._gameState !== 'idle' && this._gameState !== 'finish';
+    const isActive = this.gameState !== 'idle' && this.gameState !== 'finish';
     // this.Logger.info('[GET] isActive', isActive, this);
     return isActive;
   }
   public get timeLeftOfRound() {
     const timeLeft = this.timerService.timeLeft;
-    this.Logger.info('[GET] timeLeftOfRound', timeLeft);
+    this.__logger.info('[GET] timeLeftOfRound', timeLeft);
     return timeLeft;
   }
 
@@ -106,21 +106,21 @@ export class GameStore extends BaseStore<State> {
   }
   // #endregion
 
-  // #region Exposed Actions
+  // #region Lifecycle Actions
   public startGame() {
-    this.Logger.groupCollapsed('[ACTION] startGame');
+    this.__logger.groupCollapsed('[ACTION] startGame');
     if (this.players.length === 1) {
-      this.Logger.error('Cannot start game with only one player!').groupEnd();
+      this.__logger.error('Cannot start game with only one player!').groupEnd();
       throw new Error('Cannot start game with only one player');
     }
 
-    this.Logger.info('Updating gameState to "deal".',).groupEnd();
-    this._gameState = 'deal';
+    this.__logger.info('Updating gameState to "deal".',).groupEnd();
+    this.gameState = 'deal';
   }
   public playCard(player: Player, cardResolvable: number | Card) {
-    this.Logger.groupCollapsed('[ACTION] playCard', player, cardResolvable);
-    if (this._gameState !== 'play') {
-      this.Logger.error('Cannot play card when not in play state').groupEnd();
+    this.__logger.groupCollapsed('[ACTION] playCard', player, cardResolvable);
+    if (this.gameState !== 'play') {
+      this.__logger.error('Cannot play card when not in play state').groupEnd();
       throw new Error('Cannot play card when not in play state');
     }
 
@@ -129,29 +129,36 @@ export class GameStore extends BaseStore<State> {
       : player.cards.find(c => c && this.cardService.isSameCard(c, cardResolvable));
 
     if (!card) {
-      this.Logger.error('Card not found in player deck!', { card, player }).groupEnd();
+      this.__logger.error('Card not found in player deck!', { card, player }).groupEnd();
       throw new Error('Card not found in player deck');
     }
 
     player.activeCard = card;
     player.cards.splice(player.cards.indexOf(card), 1, null);
 
-    this.Logger.info('Updating player state with activeCard', player);
+    this.__logger.info('Updating player state with activeCard', player);
     this.updatePlayer(player);
 
-    this.Logger.info('Checking if ready to update gameState...');
+    this.__logger.info('Checking if ready to update gameState...');
     if (this.players.every(p => p.activeCard)) {
-      this.Logger.info('Check returned true - updating gameState to "check"').groupEnd();
-      this._gameState = 'check';
+      this.__logger.info('Check returned true - updating gameState to "check"').groupEnd();
+      this.gameState = 'check';
     } else {
-      this.Logger.info(`Check returned false - gameState remains "${this.state.gameState}"`).groupEnd();
+      this.__logger.info(`Check returned false - gameState remains "${this.__state.gameState}"`).groupEnd();
     }
+  }
+  protected resetGame(forceToIdle = false) {
+    this.resetPlayers();
+    this.__state.lastWinner = null;
+
+    if (forceToIdle) this.gameState = 'idle';
+    this.timerService.stopTimer();
   }
   // #endregion
 
   // #region Player Actions
   protected addPlayer(username: string, isAi = false): Player {
-    this.Logger.groupCollapsed('[PLAYER ACTION] addPlayer', username);
+    this.__logger.groupCollapsed('[PLAYER ACTION] addPlayer', username);
 
     this.players = [
       ...this.players,
@@ -168,7 +175,7 @@ export class GameStore extends BaseStore<State> {
     const addedPlayer = this.players.find(p => p.name === username);
     if (!addedPlayer) throw new Error('Failed to add player!');
 
-    this.Logger.info('Added player', {
+    this.__logger.info('Added player', {
       players: this.players,
       addedPlayer
     }).groupEnd();
@@ -176,77 +183,64 @@ export class GameStore extends BaseStore<State> {
     return addedPlayer;
   }
   public getCurrentPlayer() {
-    return this.players.find(p => p.name === this.userStore.state.username);
+    return this.players.find(p => p.name === this.userStore.user.username);
   }
   protected updatePlayer(player: Player) {
-    this.Logger.groupCollapsed('[PLAYER ACTION] updatePlayer', player);
+    this.__logger.groupCollapsed('[PLAYER ACTION] updatePlayer', player);
 
     this.players = this.players.map(p => p.name === player.name ? player : p);
-    this.Logger.info('Updated player', {
+    this.__logger.info('Updated player', {
       players: this.players,
       player
     }).groupEnd();
   }
   protected resetPlayers() {
-    this.Logger.groupCollapsed('[PLAYER ACTION] resetPlayers');
+    this.__logger.groupCollapsed('[PLAYER ACTION] resetPlayers');
 
     this.players = this.players.map(player => ({
       ...player,
       activeCard: null,
       cards: [],
       wins: [],
-    }));
+    }) as Player);
 
-    this.Logger.info('Reset players', this.players).groupEnd();
+    this.__logger.info('Reset players', this.players).groupEnd();
   }
   public removePlayer(player: Player) {
-    this.Logger.groupCollapsed('[PLAYER ACTION] removePlayer', player);
+    this.__logger.groupCollapsed('[PLAYER ACTION] removePlayer', player);
 
     const playerLength = this.players.length;
     this.players = this.players.filter(p => p !== player);
     const updatedPlayerLength = this.players.length;
 
-    if (playerLength !== updatedPlayerLength) this.Logger.info('Removed player', {
+    if (playerLength !== updatedPlayerLength) this.__logger.info('Removed player', {
       players: this.players,
       removedPlayer: player
     });
-    else this.Logger.error('Player was not removed!', {
+    else this.__logger.error('Player was not removed!', {
       players: this.players,
       removedPlayer: player
     });
 
-    this.Logger.info('Checking if player was an AI player...');
+    this.__logger.info('Checking if player was an AI player...');
     if (this.aiPlayerService.isAiPlayer(player)) {
-      this.Logger.info('Player was an AI player - removing from AI player list');
+      this.__logger.info('Player was an AI player - removing from AI player list');
       this.aiPlayerService.removeAiPlayer(player);
     } else {
-      this.Logger.info('Player was not an AI player');
+      this.__logger.info('Player was not an AI player');
     }
 
-    this.Logger.groupEnd();
-  }
-
-  protected selectRandomPfp() {
-    const pfps = [
-      'Beta',
-      'Birthday',
-      'Christmas',
-      'The Blogger',
-      'The Sithlord',
-      'Winter'
-    ];
-
-    return pfps[Math.floor(Math.random() * pfps.length)];
+    this.__logger.groupEnd();
   }
 
   public addAiPlayer() {
-    this.Logger.groupCollapsed('[ACTION] addAiPlayer');
+    this.__logger.groupCollapsed('[ACTION] addAiPlayer');
 
     const aiPlayer = this.aiPlayerService.createAiPlayer(this, this.broadcastService);
     const player = this.addPlayer(aiPlayer.name, true);
     aiPlayer.player = player;
 
-    this.Logger.info('Added AI player', aiPlayer).groupEnd();
+    this.__logger.info('Added AI player', aiPlayer).groupEnd();
   }
   // #endregion
 
@@ -268,7 +262,7 @@ export class GameStore extends BaseStore<State> {
   }
 
   protected dealCards() {
-    this.Logger.groupCollapsed('[GAME ACTION] dealCards');
+    this.__logger.groupCollapsed('[GAME ACTION] dealCards');
 
     this.players = this.players.map(player => ({
       ...player,
@@ -276,16 +270,16 @@ export class GameStore extends BaseStore<State> {
     }));
     this.aiPlayerService.updateAiPlayers(this.players);
 
-    this.Logger.info('Dealt cards to players', this.players);
+    this.__logger.info('Dealt cards to players', this.players);
 
-    this.Logger.info('Updating gameState to "play"').groupEnd();
+    this.__logger.info('Updating gameState to "play"').groupEnd();
 
     setTimeout(() => {
-      this._gameState = 'play';
+      this.gameState = 'play';
     }, 1000);
   }
   protected startNewRound() {
-    this.Logger.groupCollapsed('[GAME ACTION] startNewRound');
+    this.__logger.groupCollapsed('[GAME ACTION] startNewRound');
 
     this.players = this.players.map(player => {
       const selectedCardIndex = player.cards.findIndex(c => c === null);
@@ -294,10 +288,10 @@ export class GameStore extends BaseStore<State> {
         const newCard = this.cardService.generateCard();
 
         if (player.activeCard && this.cardService.isSameCard(newCard, player.activeCard)) {
-          this.Logger.info('Regenerating card to avoid same active card', { oldCard: player.activeCard, newCard });
+          this.__logger.info('Regenerating card to avoid same active card', { oldCard: player.activeCard, newCard });
           continue;
         } else if (player.cards.some(c => c && this.cardService.isSameCard(c, newCard))) {
-          this.Logger.info('Regenerating card to avoid duplicate in deck', { deck: player.cards, newCard });
+          this.__logger.info('Regenerating card to avoid duplicate in deck', { deck: player.cards, newCard });
           continue;
         }
 
@@ -311,42 +305,42 @@ export class GameStore extends BaseStore<State> {
       };
     });
 
-    this.Logger.info('Updated card state for players', this.players);
+    this.__logger.info('Updated card state for players', this.players);
 
-    this.Logger.info('Starting round timer...');
-    this.timerService.startTimer(DEFAULT_ROUND_DURATION_SECONDS, this.onTimerExpired);
-    this.Logger.info('Round timer started').groupEnd();
+    this.__logger.info('Starting round timer...');
+    this.timerService.startTimer(this.settingsStore.roundTimerSeconds, this.onTimerExpired);
+    this.__logger.info('Round timer started').groupEnd();
   }
   private onTimerExpired() {
-    this._gameState = 'check';
+    this.gameState = 'check';
   }
   protected async findAndDeclareRoundWinner() {
-    this.Logger.groupCollapsed('[GAME ACTION] findAndDeclareRoundWinner');
+    this.__logger.groupCollapsed('[GAME ACTION] findAndDeclareRoundWinner');
 
     await new Promise(resolve => setTimeout(resolve, ROUND_END_DELAY_SECONDS * 1000));
 
-    this.Logger.groupCollapsed('Sorting winners...');
+    this.__logger.groupCollapsed('Sorting winners...');
     const players = [...this.players]
     const winners = players
       .sort(() => Math.random() - 0.5) // Shuffle to prevent entry order bias
       .sort((a, b) => {
         if (!a.activeCard && !b.activeCard) {
-          this.Logger.warn('Players have no cards!', { a, b }).groupEnd();
+          this.__logger.warn('Players have no cards!', { a, b }).groupEnd();
           return 0;
         }
         else if (!a.activeCard) {
-          this.Logger.warn('Player A has no card!', { a, b }).groupEnd();
+          this.__logger.warn('Player A has no card!', { a, b }).groupEnd();
           // Player B wins
           return 1;
         }
         else if (!b.activeCard) {
-          this.Logger.warn('Player B has no card!', { a, b }).groupEnd();
+          this.__logger.warn('Player B has no card!', { a, b }).groupEnd();
           // Player A wins
           return -1;
         }
 
         const winnerCard = this.cardService.determineWinner(a.activeCard, b.activeCard);
-        this.Logger.info('Determined winner', {
+        this.__logger.info('Determined winner', {
           winner: winnerCard === a.activeCard ? a : winnerCard === b.activeCard ? b : null,
           card: winnerCard
         });
@@ -362,11 +356,11 @@ export class GameStore extends BaseStore<State> {
     );
     const winner = (winnerCard === a.activeCard) ? a : (winnerCard === b.activeCard) ? b : null;
 
-    this.Logger
+    this.__logger
       .info(`${winner?.name ?? 'No one'} wins`, { winnerCard, a, b })
       .groupEnd()
       .info('Winner found', { winner, winnerCard });
-    this.state.lastWinner = winner;
+    this.__state.lastWinner = winner;
 
     if (winner && winner.activeCard) {
       winner.wins.push(winner.activeCard);
@@ -379,11 +373,11 @@ export class GameStore extends BaseStore<State> {
           'loss'
     );
 
-    this.Logger.info('Broadcasting winner', { winner, winState }).groupEnd();
+    this.__logger.info('Broadcasting winner', { winner, winState }).groupEnd();
     this.broadcastService.emit('declareRoundWinner', winState, winner, winner?.activeCard ?? null);
   }
   protected checkGameWinner() {
-    this.Logger.groupCollapsed('[GAME ACTION] checkGameWinner', this.players.map(p => ({
+    this.__logger.groupCollapsed('[GAME ACTION] checkGameWinner', this.players.map(p => ({
       wins: p.wins,
       name: p.name,
     })));
@@ -409,65 +403,52 @@ export class GameStore extends BaseStore<State> {
       if (!hasThreeOfSameElement && !hasThreeDifferentElements) continue;
 
       // Declare game winner
-      this.Logger.info('Game winner found', player, { hasThreeDifferentElements, hasThreeOfSameElement, wins, elementMap });
+      this.__logger.info('Game winner found', player, { hasThreeDifferentElements, hasThreeOfSameElement, wins, elementMap });
 
       // Broadcast of game winner is handled in onGameStateChange, that later calls onFinishGame
-      this.state.lastWinner = player;
-      this._gameState = 'finish';
+      this.__state.lastWinner = player;
+      this.gameState = 'finish';
       return;
     }
 
-    this.Logger.info('No game winners found yet - updating gameState back to "play" after delay.').groupEnd();
+    this.__logger.info('No game winners found yet - updating gameState back to "play" after delay.').groupEnd();
 
     // Add a small delay to prevent rapid state cycling
     setTimeout(() => {
-      this._gameState = 'play';
+      this.gameState = 'play';
     }, 500);
   }
   // #endregion
 
   // #region Lifecycle Hooks
   public onInit() {
-    this.Logger.groupCollapsed('[LifeCycle] onInit');
+    this.__logger.groupCollapsed('[LifeCycle] onInit');
 
-    this.addPlayer(this.userStore.state.username);
+    this.addPlayer(this.userStore.user.username);
     this._registerBroadcastEvents(this.broadcastService);
 
-    this.Logger.groupEnd();
+    this.__logger.groupEnd();
   }
   public onDestroy() {
-    this.Logger.groupCollapsed('[LifeCycle] onDestroy');
+    this.__logger.groupCollapsed('[LifeCycle] onDestroy');
     this._subscriptions.forEach(sub => sub.unsubscribe());
     this._subscriptions = [];
-    this.Logger.info('Unsubscribed from BroadcastEvents', this._subscriptions).groupEnd();
+    this.__logger.info('Unsubscribed from BroadcastEvents', this._subscriptions).groupEnd();
   }
   // #endregion
 
-  // #region Game Settings
-  protected resetGame(forceToIdle = false) {
-    this.resetPlayers();
-    this.state.aiPlayerNames = [];
-    this.state.lastWinner = null;
+  protected selectRandomPfp() {
+    const pfps = [
+      'Beta',
+      'Birthday',
+      'Christmas',
+      'The Blogger',
+      'The Sithlord',
+      'Winter'
+    ];
 
-    if (forceToIdle) this._gameState = 'idle';
-    this.timerService.stopTimer();
+    return pfps[Math.floor(Math.random() * pfps.length)];
   }
-  public setRoundTimer(seconds: number) {
-    // Note: This method may need adjustment based on how you want to handle timer duration changes
-    this.Logger.info(`Round timer duration set to ${seconds} seconds`);
-    return this;
-  }
-  public setCardDeckSize(size: number) {
-    this.cardService.deckSize = size;
-    this.Logger.info(`Updated card deck size to ${size}`, this.cardService);
-    return this;
-  }
-  public setMaxCardValue(value: number) {
-    this.cardService.maxCardValue = value;
-    this.Logger.info(`Updated max card value to ${value}`, this.cardService);
-    return this;
-  }
-  // #endregion
 }
 
 export default GameStore;

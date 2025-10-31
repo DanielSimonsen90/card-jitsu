@@ -1,2 +1,2 @@
-export * from './UserStore';
-export * from './User'
+export { default } from './UserStore';
+export * from './User';
