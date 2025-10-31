@@ -21,6 +21,6 @@
     [isOpen]="isSettingsModalOpen" 
     (closeModal)="onCloseSettingsModal()"
   >
-    <app-settings-content></app-settings-content>
+    <app-settings-content (closeModal)="onCloseSettingsModal()" />
   </app-modal-dialog>
 </div>

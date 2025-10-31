@@ -1,4 +1,4 @@
-import { Settings } from "./SettingsStore.types";
+import { DeckLocation, RedrawGainMethod, Settings } from "./SettingsStore.types";
 
 export default {
   cards: {
@@ -14,4 +14,23 @@ export default {
     gainMethod: 'round-won'
   },
   roundTimerSeconds: 30,
-} satisfies Settings
+} satisfies Settings;
+
+export const SETTINGS_OPTIONS = {
+  deck: {
+    locationPreference: [
+      'top',
+      'bottom'
+    ] as Array<DeckLocation>,
+  },
+  redraw: {
+    gainMethod: [
+      'end-of-round',
+      'end-of-game',
+      'game-won',
+      'game-lost',
+      'round-won',
+      'round-lost',
+    ] as Array<RedrawGainMethod>
+  }
+};

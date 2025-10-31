@@ -1,0 +1,24 @@
+/* Webkit Scrollbar Styling */
+::-webkit-scrollbar {
+  width: .5rem;
+  height: .5rem;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background-secondary--muted);
+  border-radius: .25rem;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--background-tertiary);
+  border-radius: .25rem;
+  transition: background-color 0.2s ease;
+  
+  &:hover {
+    background: var(--background-tertiary--light);
+  }
+}
+
+::-webkit-scrollbar-corner {
+  background: var(--background-secondary);
+}

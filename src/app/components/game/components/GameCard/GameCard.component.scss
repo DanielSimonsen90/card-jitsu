@@ -21,7 +21,6 @@
     background-position: center;
   }
 
-  // Good
   &:has(.game-card__content[data-show-content=true]) {
     background-image: none;
   }

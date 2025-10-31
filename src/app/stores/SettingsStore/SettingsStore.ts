@@ -7,7 +7,7 @@ import { Injectable } from "@angular/core";
 import { StoreState } from "@/decorators";
 
 type State = {
-  settings: Settings
+  settings: Settings;
 };
 
 @Injectable({ providedIn: 'root' })
