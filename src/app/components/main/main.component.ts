@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 
 import { SITE_NAME } from '@/constants';
-import { GameStore } from '@/stores';
+import { GameStore, SettingsStore } from '@/stores';
 import LoggerService from '@/services/LoggerService';
 import { GameCard } from '@/services/CardService/CardService.types';
 
@@ -42,6 +42,7 @@ const Logger = LoggerService.createComponentLogger('Main');
 })
 export class MainComponent implements OnInit, OnDestroy {
   protected gameStore = inject(GameStore);
+  protected settingsStore = inject(SettingsStore);
 
   public SITE_NAME = SITE_NAME;
   public get isActive() {
