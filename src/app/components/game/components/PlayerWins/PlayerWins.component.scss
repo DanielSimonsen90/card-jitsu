@@ -1,3 +1,5 @@
+@use 'sass:list';
+
 ul.player-wins {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -16,7 +18,7 @@ ul.player-wins {
     $elements: (fire, water, ice);
     @each $element in $elements {
       &[data-elemental-type="#{$element}"] {
-        grid-column: index($elements, $element);
+        grid-column: list.index($elements, $element);
       }
     }
   }

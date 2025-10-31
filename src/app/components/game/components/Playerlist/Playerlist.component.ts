@@ -14,7 +14,7 @@ import { PlayerEntryComponent } from '../PlayerEntry';
 
 export class PlayerlistComponent {
   protected gameStore = inject(GameStore);
-
+  
   public get players() {
     return this.gameStore.players;
   }
@@ -25,7 +25,11 @@ export class PlayerlistComponent {
 
     this.gameStore.removePlayer(player);
   }
+  
   public onAddAiPlayerClicked() {
     this.gameStore.addAiPlayer();
+  }
+  public onOpenSettingsClicked() {
+    throw new Error('Method not implemented.');
   }
 }
