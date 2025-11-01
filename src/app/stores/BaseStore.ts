@@ -27,7 +27,10 @@ export default abstract class BaseStore<State extends object> {
     this.__logger.groupCollapsed('Requested save');
 
     const json = JSON.stringify(this.toJSON());
-    if (json === '{}') this.__logger.warn('toJSON function was not overloaded or returned blank object.');
+    if (json === '{}') this.__logger.warn('toJSON function was not overloaded or returned blank object.', {
+      state: this.__state,
+      json
+    });
 
     this.storageService.setItem(this.constructor.name, json);
 

@@ -1,5 +1,6 @@
 import { StorageService } from "@/services/StorageService";
 import { ValidationService } from "@/services/ValidationService";
+import BroadcastService from "@/services/BroadcastService";
 import BaseStore from "../BaseStore";
 import { DeckLocation, RedrawGainMethod, Settings } from "./SettingsStore.types";
 import DEFAULT_SETTINGS from "./DefaultSettings";
@@ -16,7 +17,8 @@ type State = {
 })
 export default class SettingsStore extends BaseStore<State> {
   constructor(
-    storageService: StorageService
+    storageService: StorageService,
+    protected broadcastService: BroadcastService,
   ) {
     super(storageService, 'Settings');
   }
@@ -99,9 +101,21 @@ export default class SettingsStore extends BaseStore<State> {
     value: Partial<Settings[K]>,
     validator?: () => void
   ): void {
-    validator?.();
-
     const currentValue = this.__state.settings[key];
+
+    this.__logger.groupCollapsed(`updatePartialSetting: ${key}`, {
+      current: currentValue,
+      update: value
+    });
+
+    try {
+      validator?.();
+      this.__logger.info('Validation passed', { key, value });
+    } catch (error) {
+      this.__logger.error('Validation failed', { key, value, error });
+      throw error;
+    }
+
 
     if (typeof currentValue === 'object' && currentValue !== null) {
       this.__state.settings[key] = {
@@ -112,7 +126,12 @@ export default class SettingsStore extends BaseStore<State> {
       this.__state.settings[key] = value as Settings[K];
     }
 
+    this.__logger.info('State updated', this.__state.settings[key]);
+
     this.save();
+    this.emitChange(key);
+
+    this.__logger.groupEnd();
   }
   private updateSetting<K extends keyof Settings>(
     key: K,
@@ -122,6 +141,12 @@ export default class SettingsStore extends BaseStore<State> {
     validator?.();
     this.__state.settings[key] = value;
     this.save();
+    this.emitChange(key);
+  }
+
+  private emitChange(changedKey: keyof Settings): void {
+    this.__logger.info('Emitting change', { key: changedKey, state: this.__state.settings });
+    this.broadcastService.emit('settingsChanged', this.__state.settings, changedKey);
   }
   // #endregion
 }

@@ -16,7 +16,11 @@ import BaseStore from "../BaseStore";
 import UserStore from "../UserStore";
 import SettingsStore from "../SettingsStore";
 
-import { onDeclareRoundWinner, onFinishGame, onPlayCard, onGainRedraw, onUpdateGameState } from './events';
+import { 
+  onDeclareRoundWinner, onFinishGame, 
+  onPlayCard, onGainRedraw, 
+  onSettingsChanged, onUpdateGameState 
+} from './events';
 
 export const ROUND_END_DELAY_SECONDS = 3;
 
@@ -40,6 +44,7 @@ export class GameStore extends BaseStore<State> {
     protected settingsStore: SettingsStore,
 
     protected cardService: CardService,
+    protected broadcastService: BroadcastService,
   ) {
     super(storageService, 'Game');
 
@@ -47,7 +52,6 @@ export class GameStore extends BaseStore<State> {
   }
 
   protected aiPlayerService = new AiPlayerService();
-  protected broadcastService = new BroadcastService();
   protected elementalService = new ElementalService();
   protected timerService = new TimerService();
 
@@ -148,11 +152,17 @@ export class GameStore extends BaseStore<State> {
     }
   }
 
-  public redraw(player: Player, card: Card) {
-    this.__logger.groupCollapsed('[ACTION] redraw', player, card);
+  public redraw(receivedPlayer: Player, card: Card) {
+    this.__logger.groupCollapsed('[ACTION] redraw', receivedPlayer, card);
     if (this.gameState !== 'play') {
       this.__logger.error('Cannot redraw card when not in play state').groupEnd();
       throw new Error('Cannot redraw card when not in play state');
+    }
+
+    const player = this.players.find(p => p.name === receivedPlayer.name);
+    if (!player) {
+      this.__logger.error('Player not found in game store', receivedPlayer).groupEnd();
+      throw new Error('Player not found in game store');
     }
 
     if (player.availableRedraws <= 0) {
@@ -183,22 +193,12 @@ export class GameStore extends BaseStore<State> {
     this.__logger.groupEnd();
   }
   public gainRedraw(amount: number, players: Player[]) {
-    this.players = this.players.map(player => {
-      if (!players.includes(player)) return player;
-
-      this.__logger.groupCollapsed('[ACTION] gainRedraw', player, amount);
-
-      const newRedraws = player.availableRedraws + amount;
-      this.__logger.info('Gained redraws', {
-        oldRedraws: player.availableRedraws,
-        newRedraws,
-      }).groupEnd();
-
-      return {
-        ...player,
-        availableRedraws: newRedraws,
-      };
-    });
+    for (const player of players) {
+      player.availableRedraws += amount;
+      this.updatePlayer(player);
+    }
+    
+    this.broadcastService.emit('redrawGained', players);
   }
   
   protected resetGame(forceToIdle = false) {
@@ -308,7 +308,8 @@ export class GameStore extends BaseStore<State> {
       broadcastService.on('playCard', onPlayCard(this)),
       broadcastService.on('declareRoundWinner', onDeclareRoundWinner(this)),
       broadcastService.on('gainRedraw', onGainRedraw(this)),
-      broadcastService.on('updateGameState', onUpdateGameState(this))
+      broadcastService.on('settingsChanged', onSettingsChanged(this)),
+      broadcastService.on('updateGameState', onUpdateGameState(this)),
     ];
     // this.Logger.info('Registered BroadcastEvents', this._subscriptions).groupEnd();
   }

@@ -13,7 +13,7 @@ export default class AiPlayer implements Pick<Player, 'name'> {
         case 'play': {
           const shouldRedraw = Math.random() < 1 / 5; // 1 of 5 chance to redraw
 
-          if (shouldRedraw && this.player) await new Promise<void>(resolve => setTimeout(() => {
+          if (shouldRedraw && this.player && this.player.availableRedraws) await new Promise<void>(resolve => setTimeout(() => {
             if (!this.player) return resolve();
 
             const randomCard = this.player.cards

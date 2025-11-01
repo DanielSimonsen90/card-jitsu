@@ -120,6 +120,10 @@ export class SettingsContentComponent implements OnInit {
       for (const key in this.settingsForm.value) {
         const value = this.settingsForm.value[key];
         if (!(key in this.settingsStore)) throw new Error(`Invalid setting key: ${key}`);
+
+        const currentValue = this.settingsStore[key as keyof Settings];
+        if (JSON.stringify(currentValue) === JSON.stringify(value)) continue;
+        
         this.settingsStore[key as keyof Settings] = value;
       }
 

@@ -1,7 +1,7 @@
 <section class="player-deck" [attr.data-opponent]="isOpponent">
   <app-player-entry [player]="player"></app-player-entry>
   <app-player-wins [player]="player"> </app-player-wins>
-  <button class="secondary" (click)="onRedrawToggle()">Redraw ({{ redraws }})</button>
+  <button class="secondary" [disabled]="!player.availableRedraws" (click)="onRedrawToggle()">Redraw ({{ redraws }})</button>
   <ol class="deck">
     <li *ngFor="let card of deck" class="card">
       <gamecard [card]="card" [showContent]="showContent" [showRedrawButton]="__state.redrawMode" (onRedraw)="onRequestRedraw($event)" />

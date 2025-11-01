@@ -49,6 +49,7 @@ export default function StoreState<TProps extends object>(props: TProps) {
             Logger.info('[SET]', propertyKey, value); // Log when property is updated
             _getSignal().set(value); // Use signal.set to update the value
           },
+          enumerable: true, // Make the property enumerable so JSON.stringify can see it
         });
 
         Logger.info(`Finished ${propertyKey}`, {

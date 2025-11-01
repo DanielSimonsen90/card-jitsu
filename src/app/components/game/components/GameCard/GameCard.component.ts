@@ -42,6 +42,7 @@ export class GameCardComponent implements OnInit {
 
   public onRedrawClick(event: Event) {
     event.stopPropagation();
+    event.preventDefault();
     if (this.card) this.onRedraw.emit(this.card);
   }
 }
