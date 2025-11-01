@@ -6,14 +6,18 @@
   width: calc(100vw - var(--margin) * 2);
   margin: 2em;
 
-  display: grid;
-  grid-template-columns: auto 24ch;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  row-gap: 2rem;
 
   main {
     display: flex;
     flex-direction: column;
     place-items: center;
     gap: 1rem;
+
+    flex: 1 1 auto;
   }
 
   aside {
@@ -56,10 +60,13 @@
 .active-cards-container {
   display: grid;
   place-items: center;
+  margin: 2rem 0;
 }
 
 .active-cards {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 1rem;
   padding: unset;
 

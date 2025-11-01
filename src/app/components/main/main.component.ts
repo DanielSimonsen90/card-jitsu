@@ -71,9 +71,11 @@ export class MainComponent implements OnInit, OnDestroy {
     throw new Error('No current player');
   }
   public get activeCards() {
+    const preferFirst = this.settingsStore.deck.locationPreference === 'top';
+
     return this.gameStore.players
       // sort so currentPlayer is first in list
-      .sort((a, b) => a === this.currentPlayer ? 1 : -1)
+      .sort((a, b) => a === this.currentPlayer && preferFirst ? -1 : b === this.currentPlayer && !preferFirst ? -1 : 1)
       // Only include players with active cards
       .filter(player => player.activeCard)
       // Map to Card to GameCard

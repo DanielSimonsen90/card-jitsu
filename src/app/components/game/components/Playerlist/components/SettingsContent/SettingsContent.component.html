@@ -29,7 +29,7 @@
         </select>
 
         <input *ngIf="setting.type === 'number'" 
-          type="number" class="form-control" 
+          type="number" class="form-control" min="0"
           [id]="section.key + '-' + setting.key"
           [formControlName]="setting.key" 
         />

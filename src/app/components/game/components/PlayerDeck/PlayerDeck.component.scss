@@ -1,8 +1,12 @@
 .player-deck {
-  display: grid;
-  grid-template-columns: auto 7rem 1fr;
+  // display: grid;
+  // grid-template-columns: auto 7rem 1fr;
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 2em;
+  justify-content: center;
+  column-gap: 2em;
+  row-gap: 1em;
 
   &[data-opponent=true] {
     .game-card {
@@ -13,7 +17,11 @@
 
 .deck {
   list-style-type: none;
+
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 1em;
+  
   padding: 0;
 }

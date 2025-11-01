@@ -6,6 +6,10 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  flex-wrap: wrap;
+  row-gap: 1rem;
+  column-gap: 2rem;
+
   border-bottom: 1px solid var(--background-secondary);
   position: relative;
   padding: var(--_padding);
@@ -13,6 +17,7 @@
 
   .site-name {
     margin: 0;
+    margin-inline: auto;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -32,7 +37,6 @@
   }
 
   app-logout {
-    position: absolute;
-    right: 5vw;
+    width: fit-content;
   }
 }

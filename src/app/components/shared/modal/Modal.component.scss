@@ -47,6 +47,11 @@
     place-items: center;
     padding: 1rem;
     background-color: var(--background-primary);
+    width: 100%;
+
+    @media (max-width: 600px) {
+      padding: .5rem;
+    }
   }
 }
 
