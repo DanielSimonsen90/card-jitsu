@@ -88,6 +88,7 @@ export class MainComponent implements OnInit, OnDestroy {
 
   public ngOnInit(): void {
     this.gameStore.onInit();
+    this.settingsStore.load();
   }
   public ngOnDestroy(): void {
     this.gameStore.onDestroy();

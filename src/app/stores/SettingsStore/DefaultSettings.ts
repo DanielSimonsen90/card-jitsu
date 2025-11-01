@@ -7,7 +7,7 @@ export default {
   },
   deck: {
     size: 5,
-    locationPreference: 'bottom'
+    locationPreference: 'top'
   },
   redraw: {
     amountOfCards: 1,
