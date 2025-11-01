@@ -20,4 +20,13 @@ export class PlayerEntryComponent {
     if (this.player.isAi) return null;
     return this.userStore.user;
   }
+
+  public getPlayerImageSrc(): string {
+    const folder = this.player.isAi ? 'mascots' : 'pfps';
+    const extension = this.player.isAi ? 'webp' : 'png';
+    // Convert display name (with spaces) to filename (with underscores)
+    const filename = this.player.pfp.replace(/ /g, '_');
+    const encodedPfp = encodeURIComponent(filename);
+    return `/assets/${folder}/${encodedPfp}.${extension}`;
+  }
 }

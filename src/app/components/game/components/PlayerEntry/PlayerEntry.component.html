@@ -1,7 +1,7 @@
 <div class="player-entry">
   <img 
     class="pfp" 
-    src="/assets/{{player.isAi ? 'mascots' : 'pfps'}}/{{player.pfp}}.{{player.isAi ? 'webp' : 'png'}}"
+    [src]="getPlayerImageSrc()"
     alt="{{ player.name }}'s profile picture" 
   />
   <div class="text-container">
