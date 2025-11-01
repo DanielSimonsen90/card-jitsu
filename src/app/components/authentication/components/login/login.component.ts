@@ -13,14 +13,12 @@ const Logger = LoggerService.createComponentLogger('Login');
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
-export default class LoginComponent implements OnInit {
-  private _userStore = inject(UserStore);
-
-  public username: string | undefined;
-
-  public ngOnInit(): void {
-    this.username = this._userStore.state.username;
+export default class LoginComponent {
+  constructor(private _userStore: UserStore) {
+    this.username = _userStore.user.username;
   }
+  
+  public username: string;
 
   public onSubmit() {
     Logger.info('onSubmit', this.username);

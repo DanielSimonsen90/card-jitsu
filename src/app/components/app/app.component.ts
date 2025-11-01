@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { UserStore } from '@/stores';
+import { SettingsStore, UserStore } from '@/stores';
 import { StorageService } from '@/services/StorageService';
 import AuthenticationComponent from "../authentication/authentication.component";
 import SiteHeaderComponent from "../shared/header/header.component";
@@ -11,7 +11,7 @@ import { TestComponent } from "../shared/test/test.component";
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
   imports: [AuthenticationComponent, SiteHeaderComponent],
-  providers: [StorageService, UserStore],
+  providers: [StorageService, UserStore, SettingsStore],
 })
 
 export default class AppComponent {}

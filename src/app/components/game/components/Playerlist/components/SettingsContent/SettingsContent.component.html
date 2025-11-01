@@ -1,0 +1,51 @@
+<form class="settings-content" [formGroup]="settingsForm" (ngSubmit)="onSubmit()">
+  <ng-container *ngFor="let section of sections">
+    <!-- Primitive options -->
+    <fieldset *ngIf="!section.settings">
+      <legend>{{ section.label }}</legend>
+      <div class="input-group">
+        <label [for]="section.key">{{ section.label }}</label>
+        <input *ngIf="settingsForm.get(section.key)" 
+          type="number" class="form-control" 
+          [id]="section.key" 
+          [formControlName]="section.key" 
+        />
+      </div>
+    </fieldset>
+
+    <!-- Object options -->
+    <fieldset *ngIf="section.settings" [formGroupName]="section.key">
+      <legend>{{ section.label }}</legend>
+
+      <div *ngFor="let setting of section.settings" class="input-group">
+        <label [for]="section.key + '-' + setting.key">{{ setting.label }}</label>
+
+        <select *ngIf="setting.type === 'select'" 
+          class="form-control"
+          [id]="section.key + '-' + setting.key" 
+          [formControlName]="setting.key"
+        >
+          <option *ngFor="let option of setting.options" [value]="option.value">{{ option.label }}</option>
+        </select>
+
+        <input *ngIf="setting.type === 'number'" 
+          type="number" class="form-control" 
+          [id]="section.key + '-' + setting.key"
+          [formControlName]="setting.key" 
+        />
+
+        <input *ngIf="setting.type === 'text'"  
+          type="text" class="form-control" 
+          [id]="section.key + '-' + setting.key"
+          [formControlName]="setting.key" 
+        />
+      </div>
+    </fieldset>
+  </ng-container>
+
+  <div class="button-container">
+    <button type="submit" class="primary">Save Settings</button>
+    <button type="button" class="secondary" (click)="onReset()">Reset</button>
+  </div>
+
+</form>

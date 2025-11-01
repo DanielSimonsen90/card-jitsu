@@ -21,7 +21,6 @@
     background-position: center;
   }
 
-  // Good
   &:has(.game-card__content[data-show-content=true]) {
     background-image: none;
   }
@@ -64,6 +63,10 @@
   &__value {
     font-size: 2rem;
     font-weight: bold;
+  }
+
+  &__redraw-button {
+    font-size: .5rem;
   }
 }
 

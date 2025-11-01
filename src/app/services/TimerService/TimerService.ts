@@ -1,5 +1,4 @@
 
-import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import Timer from "./Timer";
 import { TimerCallback } from "./Timer.types";
@@ -11,7 +10,6 @@ import { TimerCallback } from "./Timer.types";
  * Through public functions like `startTimer` and `stopTimer`, the timer can be controlled.
  * Additionally, provides an observable stream of time updates.
  */
-@Injectable()
 export class TimerService {
   private timerSubject = new BehaviorSubject<number>(0);
   private interval: any = null;

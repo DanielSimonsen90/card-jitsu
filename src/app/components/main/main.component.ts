@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 
 import { SITE_NAME } from '@/constants';
-import { GameStore } from '@/stores';
+import { GameStore, SettingsStore } from '@/stores';
 import LoggerService from '@/services/LoggerService';
 import { GameCard } from '@/services/CardService/CardService.types';
 
@@ -42,6 +42,7 @@ const Logger = LoggerService.createComponentLogger('Main');
 })
 export class MainComponent implements OnInit, OnDestroy {
   protected gameStore = inject(GameStore);
+  protected settingsStore = inject(SettingsStore);
 
   public SITE_NAME = SITE_NAME;
   public get isActive() {
@@ -49,13 +50,13 @@ export class MainComponent implements OnInit, OnDestroy {
   }
   public get shouldShowActiveCardContent() {
     return (
-      this.gameStore.state.gameState !== 'deal'
-      && this.gameStore.state.gameState !== 'play'
+      this.gameStore.gameState !== 'deal'
+      && this.gameStore.gameState !== 'play'
     );
   }
 
   public get opponents() {
-    return this.gameStore.state.players
+    return this.gameStore.players
       .filter(p => p !== this.currentPlayer);
   }
   public get currentPlayer() {
@@ -64,13 +65,13 @@ export class MainComponent implements OnInit, OnDestroy {
 
     Logger.error('No current player', {
       getCurrentPlayerResult: player,
-      players: this.gameStore.state.players,
+      players: this.gameStore.players,
       gameStore: this.gameStore,
     });
     throw new Error('No current player');
   }
   public get activeCards() {
-    return this.gameStore.state.players
+    return this.gameStore.players
       // sort so currentPlayer is first in list
       .sort((a, b) => a === this.currentPlayer ? 1 : -1)
       // Only include players with active cards

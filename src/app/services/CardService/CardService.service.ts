@@ -1,11 +1,14 @@
 import { Injectable } from "@angular/core";
-import ElementalService from "../ElementalService";
-import { Card, Color, GameWins } from "./CardService.types";
-import { ElementalType } from "../ElementalService/ElementalService.types";
-import { GameProvider } from "@/components/game";
 
-const DEFAULT_DECK_SIZE = 5;
-const DEFAULT_MAX_CARD_VALUE = 20;
+import SettingsStore from "@/stores/SettingsStore/SettingsStore";
+
+import type { Card, Color, GameWins } from "./CardService.types";
+import type { ElementalType } from "../ElementalService/ElementalService.types";
+import type { Broadcast } from "../BroadcastService/BroadcastService.types";
+
+import BroadcastService from "../BroadcastService";
+import ElementalService from "../ElementalService";
+import LoggerService from "../LoggerService";
 
 /**
  * CardService is in charge of generating and dealing cards for the players
@@ -20,17 +23,27 @@ const DEFAULT_MAX_CARD_VALUE = 20;
 @Injectable()
 export default class CardService {
   constructor(
-    private readonly elementalService: ElementalService
-  ) {}
+    private readonly settingsStore: SettingsStore,
+    private readonly broadcastService: BroadcastService,
+  ) {
+    let subscription = this.subscribeToRedrawEvents();
+
+    this.broadcastService.on('settingsChanged', (settings, changedKey) => {
+      if (changedKey === 'redraw') {
+        subscription.unsubscribe();
+        subscription = this.subscribeToRedrawEvents();
+      }
+    });
+  }
 
   protected readonly colors: Array<Color> = ['red', 'orange', 'yellow', 'green', 'blue', 'purple'];
-  protected _deckSize = DEFAULT_DECK_SIZE;
-  protected _maxCardValue = DEFAULT_MAX_CARD_VALUE;
+  protected readonly elementalService = new ElementalService();
+
 
   // #region Generate card
   public generateCardDeck(): Array<Card> {
     return Array.from(
-      { length: this._deckSize }, 
+      { length: this.settingsStore.deck.size },
       () => this.generateCard()
     );
   }
@@ -47,13 +60,32 @@ export default class CardService {
   }
 
   /**
+   * Redraws a card from a player's deck
+   * @param card The card to redraw
+   * @param cards The player's current cards
+   * @returns The new set of cards with the redrawn card replaced
+   */
+  public redrawCard(card: Card, cards: Array<Card>): Array<Card> {
+    const cardIndex = cards.findIndex(c => this.isSameCard(c, card));
+    if (cardIndex === -1) throw new Error('CardService: Card to redraw not found in player cards');
+
+    while (true) {
+      const newCard = this.generateCard();
+      if (!this.isSameCard(newCard, card)) {
+        cards.splice(cardIndex, 1, newCard);
+        break;
+      }
+    }
+
+    return cards;
+  }
+
+  /**
    * Generates a random value between 1 and 20
    */
   private generateValue(): number {
-    const randomNumber = () => Math.floor(Math.random() * this._maxCardValue) + 1;
-    const values = Array.from({ length: 5 }, randomNumber);
-    const result = values.reduce((acc, value) => acc + value, 0) / values.length;
-    return Math.round(result);
+    const { minValue, maxValue } = this.settingsStore.cards;
+    return Math.floor(Math.random() * (maxValue - minValue + 1)) + minValue;
   }
 
   /**
@@ -116,7 +148,7 @@ export default class CardService {
 
       acc[element].push(card.color);
       return acc;
-    }, {} as GameWins)
+    }, {} as GameWins);
 
     return this.elementalService.sortGameWinsByElementalType(gameWins);
   }
@@ -126,25 +158,63 @@ export default class CardService {
       a.value === b.value &&
       a.type === b.type &&
       a.color === b.color
-    )
-  }
-  // #endregion
-
-  // #region Service Settings
-  public get deckSize(): number {
-    return this._deckSize;
-  }
-  public set deckSize(size: number) {
-    if (size < 1) throw new Error('Deck size must be at least 1');
-    this._deckSize = size;
+    );
   }
 
-  public get maxCardValue(): number {
-    return this._maxCardValue;
-  }
-  public set maxCardValue(value: number) {
-    if (value < 1) throw new Error('Max card value must be at least 1');
-    this._maxCardValue = value;
+  private subscribeToRedrawEvents() {
+    const logger = LoggerService.createLogger('CardService');
+    const { amountOfCards, gainMethod } = this.settingsStore.redraw;
+
+    logger.groupCollapsed('subscribeToRedrawEvents')
+      .info({ amountOfCards, gainMethod });
+
+    const eventName: keyof Broadcast | null = (() => {
+      switch (gainMethod) {
+        case 'end-of-round': return 'declareRoundWinner';
+        case 'round-lost': return 'declareRoundWinner';
+        case 'round-won': return 'declareRoundWinner';
+
+        case 'end-of-game': return 'finishGame';
+        case 'game-lost': return 'finishGame';
+        case 'game-won': return 'finishGame';
+
+        default: return null;
+      }
+    })();
+
+    logger.info({ eventName }).groupEnd();
+    if (!eventName) throw new Error(`CardService: Unsupported gain method "${gainMethod}"`);
+
+    return this.broadcastService.on(eventName, (...args) => {
+      logger.groupCollapsed(eventName, args);
+
+      const winner = eventName === 'declareRoundWinner' ? args[1] : eventName === 'finishGame' ? args[0] : undefined;
+      if (!winner || typeof winner !== 'object') return;
+
+      switch (gainMethod) {
+        case 'end-of-round':
+        case 'end-of-game': {
+          logger.info('Broadcasting gainRedraw event', { amountOfCards, winner, target: 'all' });
+          this.broadcastService.emit('gainRedraw', amountOfCards, winner, 'all');
+          break;
+        }
+        case 'round-lost':
+        case 'game-lost': {
+          logger.info('Broadcasting gainRedraw event', { amountOfCards, winner, target: 'losers' });
+          this.broadcastService.emit('gainRedraw', amountOfCards, winner, 'losers');
+          break;
+        }
+        case 'round-won':
+        case 'game-won': {
+          logger.info('Broadcasting gainRedraw event', { amountOfCards, winner, target: 'winner' });
+          this.broadcastService.emit('gainRedraw', amountOfCards, winner, 'winner');
+          break;
+        }
+        default: throw new Error(`CardService: Unsupported gain method "${gainMethod}"`);
+      }
+      
+      logger.groupEnd();
+    });
   }
   // #endregion
 }

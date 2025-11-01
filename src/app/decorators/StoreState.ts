@@ -17,7 +17,8 @@ export default function StoreState<TProps extends object>(props: TProps) {
       const Logger = LoggerService.createLogger(`${target.name} Properties Injections`).disable();
       Logger.groupCollapsed({ target, properties: Object.keys(props) });
 
-      if (!('state' in this)) {
+      const stateKey = '__state';
+      if (!(stateKey in this)) {
         Logger.info(Object.keys(this));
         throw new Error('State not found on store');
       }
@@ -38,7 +39,7 @@ export default function StoreState<TProps extends object>(props: TProps) {
         const _getSignal = () => this[signalKey] as WritableSignal<TProps[keyof TProps]>;
 
         // Define the getter and setter dynamically
-        Object.defineProperty(this.state, propertyKey, {
+        Object.defineProperty(this[stateKey], propertyKey, {
           get: function () {
             const value = _getSignal()();
             Logger.info('[GET]', propertyKey, value); // Log when property is accessed
@@ -48,6 +49,7 @@ export default function StoreState<TProps extends object>(props: TProps) {
             Logger.info('[SET]', propertyKey, value); // Log when property is updated
             _getSignal().set(value); // Use signal.set to update the value
           },
+          enumerable: true, // Make the property enumerable so JSON.stringify can see it
         });
 
         Logger.info(`Finished ${propertyKey}`, {

@@ -1,0 +1,1 @@
+export { SettingsContentComponent } from './SettingsContent.component';

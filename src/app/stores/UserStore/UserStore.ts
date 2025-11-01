@@ -27,45 +27,45 @@ type State = {
   wins: 0,
   losses: 0,
 })
-export class UserStore extends BaseStore<State> {
+export default class UserStore extends BaseStore<State> {
   constructor(storageService: StorageService) {
     super(storageService, 'User');
 
-    this.Logger.disable();
+    this.__logger.disable();
   }
 
   public get user(): User {
     const user = {
-      username: this.state.username,
-      wins: this.state.wins,
-      losses: this.state.losses,
+      username: this.__state.username,
+      wins: this.__state.wins,
+      losses: this.__state.losses,
     };
 
-    this.Logger.info('User value requested', user);
+    this.__logger.info('User value requested', user);
 
     return user;
   }
 
   public getWinPercentage = computed(() => {
-    const winPercentage = this.state.wins / (this.state.wins + this.state.losses) * 100;
+    const winPercentage = this.__state.wins / (this.__state.wins + this.__state.losses) * 100;
 
-    this.Logger.info('Win percentage calculated:', winPercentage);
+    this.__logger.info('Win percentage calculated:', winPercentage);
 
     return winPercentage;
   });
 
-  public hasValidUser = computed(() => this.state.username !== undefined && this.state.username !== '');
+  public hasValidUser = computed(() => this.__state.username !== undefined && this.__state.username !== '');
 
   public createUser(username: string) {
-    this.Logger.info('Creating user with username:', username);
+    this.__logger.info('Creating user with username:', username);
 
-    this.state.username = username;
-    this.Logger.info('SAVING', this.state);
+    this.__state.username = username;
+    this.__logger.info('SAVING', this.__state);
     this.save();
   }
 
   public override toJSON() {
-    const { username, wins, losses } = this.state;
+    const { username, wins, losses } = this.__state;
     
     return {
       username,
@@ -74,5 +74,3 @@ export class UserStore extends BaseStore<State> {
     }
   }
 }
-
-export default UserStore;

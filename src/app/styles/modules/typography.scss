@@ -6,6 +6,8 @@
   font-family: Arial, sans-serif;
   font-size: var(--font-size);
   line-height: 1.25;
+
+  color:  var(--text-primary);
 }
 
 $headings: (
@@ -52,7 +54,6 @@ p span:not(:first-of-type) {
 }
 
 p {
-  // --margins: .5em;
   --margins: 0;
   margin-block-start: var(--margins);
   margin-block-end: var(--margins);
