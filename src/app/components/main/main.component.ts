@@ -1,10 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, ChangeDetectionStrategy, computed } from '@angular/core';
 
 import { SITE_NAME } from '@/constants';
 import { GameStore, SettingsStore } from '@/stores';
 import LoggerService from '@/services/LoggerService';
-import { GameCard } from '@/services/CardService/CardService.types';
+import { Card, GameCard } from '@/services/CardService/CardService.types';
 
 import { 
   PlayerlistComponent, 
@@ -12,6 +12,7 @@ import {
   PlayerDeckComponent 
 } from '../game/components';
 import { AutoSubscribeWithCallback } from '@/decorators';
+import { Player } from '@/models/types';
 
 const Logger = LoggerService.createComponentLogger('Main');
 
@@ -20,6 +21,7 @@ const Logger = LoggerService.createComponentLogger('Main');
   selector: 'app-main',
   templateUrl: 'main.component.html',
   styleUrl: 'main.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     PlayerlistComponent,
@@ -55,11 +57,8 @@ export class MainComponent implements OnInit, OnDestroy {
     );
   }
 
-  public get opponents() {
-    return this.gameStore.players
-      .filter(p => p !== this.currentPlayer);
-  }
-  public get currentPlayer() {
+  public get currentPlayer() { return this._currentPlayer(); }
+  private _currentPlayer = computed(() => {
     const player = this.gameStore.getCurrentPlayer();
     if (player) return player;
 
@@ -69,13 +68,22 @@ export class MainComponent implements OnInit, OnDestroy {
       gameStore: this.gameStore,
     });
     throw new Error('No current player');
-  }
-  public get activeCards() {
+  });
+
+  public get opponents() { return this._opponents(); }
+  private _opponents = computed(() => {
+    return this.gameStore.players
+      .filter(p => p !== this._currentPlayer());
+  });
+
+  public get activeCards() { return this._activeCards(); }
+  private _activeCards = computed(() => {
     const preferFirst = this.settingsStore.deck.locationPreference === 'top';
+    const currentPlayer = this._currentPlayer();
 
     return this.gameStore.players
       // sort so currentPlayer is first in list
-      .sort((a, b) => a === this.currentPlayer && preferFirst ? -1 : b === this.currentPlayer && !preferFirst ? -1 : 1)
+      .sort((a, b) => a === currentPlayer && preferFirst ? -1 : b === currentPlayer && !preferFirst ? -1 : 1)
       // Only include players with active cards
       .filter(player => player.activeCard)
       // Map to Card to GameCard
@@ -83,8 +91,7 @@ export class MainComponent implements OnInit, OnDestroy {
         ...player.activeCard,
         selected: true
       }) as GameCard);
-
-  }
+  });
 
   public roundConclusionText: string | undefined = undefined;
 
@@ -99,4 +106,8 @@ export class MainComponent implements OnInit, OnDestroy {
   public onStartGameClicked() {
     this.gameStore.startGame();
   }
+
+  // TrackBy functions for performance
+  trackByPlayer = (index: number, player: Player) => player.name || index;
+  trackByCard = (index: number, card: Card) => card ? `${card.type}-${card.value}-${card.color}` : index;
 }

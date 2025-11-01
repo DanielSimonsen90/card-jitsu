@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, inject, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { GameCard } from '@/services/CardService/CardService.types';
@@ -11,6 +11,7 @@ import { AutoSubscribeWithCallback } from '@/decorators';
   selector: 'gamecard',
   templateUrl: 'GameCard.component.html',
   styleUrl: 'GameCard.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule],
 })
 

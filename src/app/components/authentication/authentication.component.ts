@@ -22,13 +22,6 @@ const Logger = LoggerService.createComponentLogger('Authentication').disable();
 
 export default class AuthenticationComponent implements OnInit {
   private userStore = inject(UserStore);
-  
-  constructor() {
-    effect(() => {
-      const username = this.userStore.user.username; // Read signal value
-      Logger.info('Username updated', username);
-    });
-  }
 
   public ngOnInit(): void {
     this.userStore.load();

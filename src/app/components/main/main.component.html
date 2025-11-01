@@ -25,7 +25,7 @@
     
     <!-- Show opponent decks if preference is 'bottom' -->
     <ul class="player-decks" *ngIf="settingsStore.deck.locationPreference === 'bottom'">
-      <li *ngFor="let opponent of opponents">
+      <li *ngFor="let opponent of opponents; trackBy: trackByPlayer">
         <player-deck [player]="opponent" [showContent]="false" />
       </li>
     </ul>
@@ -34,7 +34,7 @@
   <section class="active-cards-container">
     <p class="conclusion" *ngIf="roundConclusionText">{{ roundConclusionText }}</p>
     <ul class="active-cards">
-      <li *ngFor="let card of activeCards">
+      <li *ngFor="let card of activeCards; trackBy: trackByCard">
         <gamecard [card]="card" [showContent]="shouldShowActiveCardContent" />
       </li>
     </ul>
@@ -46,7 +46,7 @@
     
     <!-- Show opponent decks if preference is 'top' -->
     <ul class="player-decks" *ngIf="settingsStore.deck.locationPreference === 'top'">
-      <li *ngFor="let opponent of opponents">
+      <li *ngFor="let opponent of opponents; trackBy: trackByPlayer">
         <player-deck [player]="opponent" [showContent]="false" />
       </li>
     </ul>

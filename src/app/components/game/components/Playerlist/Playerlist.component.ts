@@ -1,6 +1,6 @@
 import { GameStore } from '@/stores';
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { Player } from '@/models/types';
 import { PlayerEntryComponent } from '../PlayerEntry';
 import { ModalComponent } from '@/components/shared/modal';
@@ -11,6 +11,7 @@ import { SettingsContentComponent } from './components/SettingsContent';
   selector: 'playerlist',
   templateUrl: 'Playerlist.component.html',
   styleUrl: 'Playerlist.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, PlayerEntryComponent, ModalComponent, SettingsContentComponent],
 })
 
@@ -40,4 +41,6 @@ export class PlayerlistComponent {
   public onCloseSettingsModal() {
     this.isSettingsModalOpen = false;
   }
+
+  trackByPlayer = (index: number, player: Player) => player.name;
 }

@@ -1,14 +1,12 @@
 import { Card, GameCard } from '@/services/CardService/CardService.types';
 import { GameStore } from '@/stores';
 import { CommonModule } from '@angular/common';
-import { Component, inject, Input, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { GameCardComponent } from "../GameCard/GameCard.component";
 import { Player } from '@/models/types';
 import { PlayerEntryComponent } from '../PlayerEntry';
 import { PlayerWinsComponent } from '../PlayerWins';
 import { StoreState } from '@/decorators';
-import BroadcastService from '@/services/BroadcastService';
-import { Subscription } from 'rxjs';
 
 type State = {
   redrawMode: boolean;
@@ -19,6 +17,7 @@ type State = {
   selector: 'player-deck',
   templateUrl: 'PlayerDeck.component.html',
   styleUrl: 'PlayerDeck.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush, // Only update when @Input() changes
   imports: [
     CommonModule,
     GameCardComponent,
@@ -29,28 +28,34 @@ type State = {
 @StoreState<State>({
   redrawMode: false
 })
-export class PlayerDeckComponent implements OnInit, OnDestroy {
+export class PlayerDeckComponent implements OnInit {
   @Input() public player: Player = undefined as any;
   @Input() public showContent: boolean = true;
 
   protected gameStore = inject(GameStore);
-  protected broadcastService = inject(BroadcastService);
-  protected cdr = inject(ChangeDetectorRef);
 
   protected __state: State = {
     redrawMode: false
   };
 
-  private subscriptions: Array<Subscription> = [];
-
   public get deck(): Array<GameCard | null> {
-    const player = this.player ?? this.gameStore.getCurrentPlayer();
+    // Always get fresh player data from the signal-based store
+    const player = this.getCurrentPlayer();
     const cards = player?.cards ?? [];
 
     return cards.map(card => card === null ? card : ({
       ...card,
       selected: (player?.activeCard === card) || false
     }));
+  }
+
+  // Helper method to get current player data from signals
+  private getCurrentPlayer(): Player | null {
+    if (this.player) {
+      // Find the up-to-date player from the store's signal
+      return this.gameStore.players.find(p => p.name === this.player.name) || this.player;
+    }
+    return this.gameStore.getCurrentPlayer() || null;
   }
   public get isOpponent(): boolean {
     const currentPlayer = this.gameStore.getCurrentPlayer();
@@ -60,7 +65,7 @@ export class PlayerDeckComponent implements OnInit, OnDestroy {
   }
 
   public get redraws(): number {
-    const player = this.player ?? this.gameStore.getCurrentPlayer();
+    const player = this.getCurrentPlayer();
     return player?.availableRedraws ?? 0;
   }
 
@@ -79,23 +84,7 @@ export class PlayerDeckComponent implements OnInit, OnDestroy {
 
       this.player = currentPlayer;
     }
-
-    this.subscriptions = [
-      this.broadcastService.on('redrawGained', players => {
-        const updatedPlayer = players.find(p => p.name === this.player.name);
-        if (updatedPlayer) {
-          this.player = updatedPlayer;
-          // this.cdr.markForCheck();
-        }
-      }),
-      this.broadcastService.on('redrawCard', (player, cards) => {
-        if (player.name !== this.player.name) return;
-        this.player = player;
-      })
-    ];
   }
 
-  public ngOnDestroy(): void {
-    this.subscriptions.forEach(sub => sub.unsubscribe());
-  }
+  trackByCard = (index: number, card: GameCard | null) => card ? `${card.type}-${card.value}-${card.color}` : index;
 }

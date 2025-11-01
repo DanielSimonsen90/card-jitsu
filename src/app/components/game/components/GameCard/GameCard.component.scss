@@ -1,4 +1,6 @@
 .game-card {
+  position: relative;
+
   display: flex;
   align-items: center;
   justify-content: center;
@@ -7,7 +9,6 @@
   --size: 5rem;
   width: var(--size);
   height: calc(var(--size) * 1.5);
-  padding: clamp(.125em, 1.5vw, 1em);
   border-radius: .5em;
 
   background-color: var(--background-secondary);
@@ -32,12 +33,12 @@
     align-items: center;
     justify-content: center;
     gap: .25ch;
-    position: relative;
 
-    padding: clamp(.5em, 2.5vw, 1em);
+    padding: .75em;
     width: 50%;
     height: 66%;
     border-radius: .5em;
+    box-sizing: content-box;
 
     &:has(>*) {
       background-color: rgba(0, 0, 0, 0.2);
@@ -50,19 +51,25 @@
   }
 
   &__element-type {
-    --_offset: .25rem;
+    --_offset: 0;
     top: var(--_offset);
     left: var(--_offset);
 
     --size: 1rem;
     height: var(--size);
+    width: var(--size);
+    object-fit: contain;
+
+    padding: .25rem;
+    border-radius: .5em;
+    box-sizing: content-box;
 
     position: absolute;
     z-index: 10;
   }
 
   &__value {
-    font-size: clamp(1rem, 5vw, 2rem);
+    font-size: clamp(1rem, 2.5vw, 2rem);
     font-weight: bold;
   }
 

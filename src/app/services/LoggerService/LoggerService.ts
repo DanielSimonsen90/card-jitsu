@@ -5,7 +5,7 @@ export default class LoggerService {
   public static createLogger(tag: string) {
     return new Logger(tag, instance => {
       this._loggers[tag] = instance;
-    });
+    }).disable();
   }
 
   public static createComponentLogger(tag: string) {

@@ -3,7 +3,7 @@
   <app-player-wins [player]="player"> </app-player-wins>
   <button class="secondary" [disabled]="!player.availableRedraws" (click)="onRedrawToggle()">Redraw ({{ redraws }})</button>
   <ol class="deck">
-    <li *ngFor="let card of deck" class="card">
+    <li *ngFor="let card of deck; trackBy: trackByCard; index as i" class="card">
       <gamecard [card]="card" [showContent]="showContent" [showRedrawButton]="__state.redrawMode" (onRedraw)="onRequestRedraw($event)" />
     </li>
   </ol>

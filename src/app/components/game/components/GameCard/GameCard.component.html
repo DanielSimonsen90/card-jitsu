@@ -9,7 +9,7 @@
   <div  class="game-card__content" 
     [attr.data-show-content]="showContent"
   >
-    <img *ngIf="showContent" class="game-card__element-type" src="/assets/cards/{{card.type}}.webp" alt="{{ card.type }}" />
+    <img *ngIf="showContent" class="game-card__element-type" src="/assets/cards/{{card.type}}.webp" alt="{{ card.type }}" [style.background-color]="card.color" />
     <p *ngIf="showContent" class="game-card__value">{{ card.value }}</p>
     <button *ngIf="showRedrawButton" class="game-card__redraw-button secondary" (click)="onRedrawClick($event)">Redraw</button>
   </div>

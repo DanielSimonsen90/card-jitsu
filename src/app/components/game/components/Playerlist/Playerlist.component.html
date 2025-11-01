@@ -1,6 +1,6 @@
 <div class="playerlist-container">
   <ul class="playerlist">
-    <li class="player" *ngFor="let player of players" (click)="removePlayer(player)">
+    <li class="player" *ngFor="let player of players; trackBy: trackByPlayer" (click)="removePlayer(player)">
       <app-player-entry [player]="player"></app-player-entry>
     </li>
   </ul>

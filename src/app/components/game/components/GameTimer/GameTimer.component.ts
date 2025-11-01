@@ -1,5 +1,5 @@
 import { GameStore } from '@/stores';
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -7,6 +7,7 @@ import { CommonModule } from '@angular/common';
   selector: 'game-timer',
   templateUrl: 'GameTimer.component.html',
   styleUrl: 'GameTimer.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule],
 })
 
