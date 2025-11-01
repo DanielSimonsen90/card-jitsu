@@ -7,7 +7,7 @@ import LoggerService from '@/services/LoggerService';
 import { GameCard } from '@/services/CardService/CardService.types';
 
 import { 
-  PlayerlistComponent, PlayerWinsComponent, 
+  PlayerlistComponent, 
   GameTimerComponent, GameCardComponent, 
   PlayerDeckComponent 
 } from '../game/components';

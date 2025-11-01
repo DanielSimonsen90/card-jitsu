@@ -1,4 +1,4 @@
-import { Broadcast } from "@/services/BroadcastService/BroadcastService.types";
+import type { Broadcast } from "@/services/BroadcastService/BroadcastService.types";
 import { GameStore } from "../GameStore";
 
 export default function CreateEventHandler<TEvent extends keyof Broadcast>(

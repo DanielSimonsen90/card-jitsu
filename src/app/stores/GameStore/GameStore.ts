@@ -16,10 +16,10 @@ import BaseStore from "../BaseStore";
 import UserStore from "../UserStore";
 import SettingsStore from "../SettingsStore";
 
-import { 
-  onDeclareRoundWinner, onFinishGame, 
-  onPlayCard, onGainRedraw, 
-  onSettingsChanged, onUpdateGameState 
+import {
+  onDeclareRoundWinner, onFinishGame,
+  onPlayCard, onGainRedraw,
+  onSettingsChanged, onUpdateGameState
 } from './events';
 
 export const ROUND_END_DELAY_SECONDS = 3;
@@ -39,7 +39,7 @@ type State = {
 export class GameStore extends BaseStore<State> {
   constructor(
     storageService: StorageService,
-    
+
     protected userStore: UserStore,
     protected settingsStore: SettingsStore,
 
@@ -180,16 +180,16 @@ export class GameStore extends BaseStore<State> {
     player.availableRedraws -= 1;
 
     this.__logger.info('Updated player state after redraw', player);
-    
+
     this.updatePlayer(player);
 
     this.__logger.info('Broadcasting redrawCard event');
-    this.broadcastService.emit('redrawCard', 
-      player, 
-      player.cards as Array<Card>, 
+    this.broadcastService.emit('redrawCard',
+      player,
+      player.cards as Array<Card>,
       player.cards.find(c => !previousCards.includes(c)) as Card
     );
-    
+
     this.__logger.groupEnd();
   }
   public gainRedraw(amount: number, players: Player[]) {
@@ -197,10 +197,10 @@ export class GameStore extends BaseStore<State> {
       player.availableRedraws += amount;
       this.updatePlayer(player);
     }
-    
+
     this.broadcastService.emit('redrawGained', players);
   }
-  
+
   protected resetGame(forceToIdle = false) {
     this.resetPlayers();
     this.__state.lastWinner = null;
@@ -328,12 +328,9 @@ export class GameStore extends BaseStore<State> {
     this.aiPlayerService.updateAiPlayers(this.players);
 
     this.__logger.info('Dealt cards to players', this.players);
-
+    
     this.__logger.info('Updating gameState to "play"').groupEnd();
-
-    setTimeout(() => {
-      this.gameState = 'play';
-    }, 1000);
+    this.gameState = 'play';
   }
   protected startNewRound() {
     this.__logger.groupCollapsed('[GAME ACTION] startNewRound');
@@ -377,7 +374,7 @@ export class GameStore extends BaseStore<State> {
     await new Promise(resolve => setTimeout(resolve, ROUND_END_DELAY_SECONDS * 1000));
 
     this.__logger.groupCollapsed('Sorting winners...');
-    const players = [...this.players]
+    const players = [...this.players];
     const winners = players
       .sort(() => Math.random() - 0.5) // Shuffle to prevent entry order bias
       .sort((a, b) => {
@@ -448,15 +445,15 @@ export class GameStore extends BaseStore<State> {
       // Check if player has 3 of the same element or map size is 3
       const hasThreeOfSameElement = Object
         .values(elementMap)
-        .some(colors => colors.length === 3);
-        
+        .some(colors => colors.length >= 3);
+
       // Check if player has 3 different elements but not of the same color
       const hasThreeDifferentElements = Object.keys(elementMap).length === 3 && Object
         .values(elementMap)
         .flat()
         .filter((color, index, arr) => arr.indexOf(color) === index) // Get unique colors
-        .length === 3;
-        
+        .length >= 3;
+
       if (!hasThreeOfSameElement && !hasThreeDifferentElements) continue;
 
       // Declare game winner

@@ -1,7 +1,7 @@
 export type User = {
   username: string;
   wins: number;
-  losses: number;
+  gamesPlayed: number;
 }
 
 export default User;

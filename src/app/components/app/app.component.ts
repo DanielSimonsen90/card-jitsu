@@ -3,7 +3,7 @@ import { SettingsStore, UserStore } from '@/stores';
 import { StorageService } from '@/services/StorageService';
 import AuthenticationComponent from "../authentication/authentication.component";
 import SiteHeaderComponent from "../shared/header/header.component";
-import { TestComponent } from "../shared/test/test.component";
+import BroadcastService from '@/services/BroadcastService';
 
 @Component({
   selector: 'app-root',
@@ -11,7 +11,10 @@ import { TestComponent } from "../shared/test/test.component";
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
   imports: [AuthenticationComponent, SiteHeaderComponent],
-  providers: [StorageService, UserStore, SettingsStore],
+  providers: [
+    UserStore, SettingsStore,
+    BroadcastService, StorageService
+  ],
 })
 
 export default class AppComponent {}

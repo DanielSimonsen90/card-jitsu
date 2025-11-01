@@ -1,4 +1,4 @@
-import { Broadcast } from "../BroadcastService/BroadcastService.types";
+import type { Broadcast } from "../BroadcastService/BroadcastService.types";
 import Logger from "./Logger";
 
 export default class LoggerService {

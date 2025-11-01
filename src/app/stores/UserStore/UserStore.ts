@@ -5,6 +5,7 @@ import { StorageService } from "@/services/StorageService";
 
 import BaseStore from "../BaseStore";
 import User from "./User";
+import { BroadcastService } from "@/services/BroadcastService/BroadcastService.service";
 
 /**
  * # UserStore
@@ -15,21 +16,27 @@ import User from "./User";
  * * Losses
  */
 
-type State = {
-  username: string;
-  wins: number;
-  losses: number;
-}
-
 @Injectable({ providedIn: 'root' })
-@StoreState<State>({
+@StoreState<User>({
   username: '',
   wins: 0,
-  losses: 0,
+  gamesPlayed: 0,
 })
-export default class UserStore extends BaseStore<State> {
-  constructor(storageService: StorageService) {
+export default class UserStore extends BaseStore<User> {
+  constructor(
+    storageService: StorageService,
+    broadcastService: BroadcastService
+  ) {
     super(storageService, 'User');
+
+    broadcastService.on('finishGame', winner => {
+      if (winner) {
+        if (winner.name === this.__state.username) this.__state.wins++;
+        this.__state.gamesPlayed++;
+
+        this.save();
+      }
+    })
 
     this.__logger.disable();
   }
@@ -38,7 +45,7 @@ export default class UserStore extends BaseStore<State> {
     const user = {
       username: this.__state.username,
       wins: this.__state.wins,
-      losses: this.__state.losses,
+      gamesPlayed: this.__state.gamesPlayed,
     };
 
     this.__logger.info('User value requested', user);
@@ -47,7 +54,10 @@ export default class UserStore extends BaseStore<State> {
   }
 
   public getWinPercentage = computed(() => {
-    const winPercentage = this.__state.wins / (this.__state.wins + this.__state.losses) * 100;
+    const { wins, gamesPlayed } = this.__state;
+    if (gamesPlayed === 0) return 0;
+
+    const winPercentage = Math.round((wins / gamesPlayed) * 100);
 
     this.__logger.info('Win percentage calculated:', winPercentage);
 
@@ -65,12 +75,12 @@ export default class UserStore extends BaseStore<State> {
   }
 
   public override toJSON() {
-    const { username, wins, losses } = this.__state;
+    const { username, wins, gamesPlayed } = this.__state;
     
     return {
       username,
       wins,
-      losses,
+      gamesPlayed,
     }
   }
 }

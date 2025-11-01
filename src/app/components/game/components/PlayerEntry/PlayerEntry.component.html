@@ -4,5 +4,12 @@
     src="/assets/{{player.isAi ? 'mascots' : 'pfps'}}/{{player.pfp}}.{{player.isAi ? 'webp' : 'png'}}"
     alt="{{ player.name }}'s profile picture" 
   />
-  <p>{{player.name}}</p>
+  <div class="text-container">
+    <p>{{player.name}}</p>
+    <p *ngIf="user && user.gamesPlayed > 0" class="score">
+      <span title="wins" data-title="w">{{user.wins}}</span>
+      <span title="losses" data-title="l">{{user.gamesPlayed - user.wins}}</span>
+      <span title="winrate" data-title="wr">{{userStore.getWinPercentage()}}%</span>
+    </p>
+  </div>
 </div>
