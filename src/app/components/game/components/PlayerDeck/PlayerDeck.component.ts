@@ -70,6 +70,7 @@ export class PlayerDeckComponent implements OnInit {
   }
 
   public onRedrawToggle(): void {
+    if (this.isOpponent) return;
     this.__state.redrawMode = !this.__state.redrawMode;
   }
   public onRequestRedraw(card: Card): void {
