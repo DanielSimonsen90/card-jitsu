@@ -1,0 +1,221 @@
+<div class="readme-content">
+  <h1>Card Jitsu 🃏❄️🔥💧</h1>
+
+  <p>A digital recreation of the classic Card Jitsu game from Club Penguin, built with Angular 19 as a <strong>learning
+      experience transitioning from React to Angular</strong>. This project showcases modern Angular development
+    patterns through an event-driven architecture and custom decorators that eliminate common boilerplate code.</p>
+
+  <p>Battle against computer opponents using elemental cards in this strategic rock-paper-scissors variant where Fire
+    melts Ice, Ice freezes Water, and Water extinguishes Fire.</p>
+
+  <p style="margin-top: 1em"><strong>🌐 Live Demo</strong>: <a href="https://angular-card-jitsu.netlify.app/"
+      target="_blank">https://angular-card-jitsu.netlify.app/</a></p>
+
+  <h2>🎮 Game Concept</h2>
+
+  <p>Card Jitsu is a turn-based strategy card game where players compete using cards with three elemental types (Fire,
+    Water, Ice) and various power values (1-20). The objective is to win rounds by either:</p>
+
+  <ul>
+    <li><strong>Elemental Advantage</strong>: Fire beats Ice, Ice beats Water, Water beats Fire</li>
+    <li><strong>Higher Value</strong>: When elements match, the higher card value wins</li>
+    <li><strong>Collection Victory</strong>: First to collect one card of each element with different colors, OR three
+      of the same element with different colors, wins the game</li>
+  </ul>
+
+  <h3>Game Flow</h3>
+  <ol>
+    <li><strong>Deal Phase</strong>: Each player receives 5 cards from their deck</li>
+    <li><strong>Play Phase</strong>: Players simultaneously select a card to play (with optional redraws. This does not
+      count as a one-turn action)</li>
+    <li><strong>Check Phase</strong>: Cards are revealed and a round winner is determined</li>
+    <li><strong>Repeat</strong>: Continue until a player achieves the winning condition</li>
+  </ol>
+
+  <h2>⬆️ Custom Decorators - Eliminating Angular Boilerplate</h2>
+
+  <p>I found Angular's state management to be an excessive amount of boilerplate and developed custom decorators to
+    eliminate unnecessary verbosity in signal handling and event subscriptions.</p>
+
+  <h3>&#64;StoreState Decorator</h3>
+
+  <p><strong>Problem Solved</strong>: Angular's signal syntax creates verbose boilerplate code with repetitive
+    <code>.set()</code> and <code>.update()</code> calls throughout state management.</p>
+
+  <p><strong>Solution</strong>: The <code>&#64;StoreState</code> decorator transforms regular object properties into
+    reactive signals behind the scenes, providing a clean <code>store.__state</code> API that behaves like
+    BehaviorSubjects but with cleaner syntax.</p>
+
+  <pre><code>
+// Instead of Angular's verbose signal boilerplate:
+gameState = signal&lt;GameState&gt;('idle');
+players = signal&lt;Player[]&gt;([]);
+
+// You get clean property access:
+&#64;StoreState&lt;State&gt;({{ '{' }}
+  gameState: 'idle',
+  players: [],
+  lastWinner: null,
+{{ '}' }})
+export class GameStore extends BaseStore&lt;State&gt; {{ '{' }}
+  // Access via: this.__state.gameState = 'play'
+  // Automatically triggers reactive updates!
+{{ '}' }}
+  </code></pre>
+
+  <p><strong>How it Works</strong>:</p>
+  <ul>
+    <li>Automatically converts state properties into Angular signals</li>
+    <li>Provides clean getter/setter access that looks like regular properties</li>
+    <li>Maintains full reactivity and type safety</li>
+    <li>Eliminates the need for <code>.set()</code> and <code>.update()</code> calls</li>
+  </ul>
+
+  <p><strong>Example Implementation</strong>: See <a href="src/app/stores/GameStore/GameStore.ts"
+      target="_blank"><code>GameStore.ts</code></a> for a real-world usage.</p>
+
+  <h3>&#64;AutoSubscribeWithCallback Decorator</h3>
+
+  <p><strong>Problem Solved</strong>: Components subscribing to BroadcastService events require repetitive
+    <code>ngOnInit</code>/<code>ngOnDestroy</code> boilerplate for proper subscription management.</p>
+
+  <p><strong>Solution</strong>: Automatically handles event subscriptions and cleanup, reducing component code and
+    preventing memory leaks.</p>
+
+  <pre><code>// Instead of manual subscription management:
+export class PlayerCardComponent implements OnInit, OnDestroy {{ '{' }}
+  isCardPlayable = true;
+  private subscription: Subscription;
+  
+  ngOnInit() {{ '{' }}
+    this.subscription = this.gameStore.on('declareRoundWinner', (state, winner) =&gt; {{ '{' }}
+      this.isCardPlayable = state !== 'win';
+      this.updateCardVisuals();
+    {{ '}' }});
+  {{ '}' }}
+  
+  ngOnDestroy() {{ '{' }}
+    this.subscription?.unsubscribe();
+  {{ '}' }}
+  
+  updateCardVisuals() {{ '{' }}
+    // Custom component logic
+  {{ '}' }}
+{{ '}' }}
+
+// You get automatic subscription management:
+&#64;AutoSubscribeWithCallback(PlayerCardComponent, 'declareRoundWinner', 
+  (component, state, winner) =&gt; {{ '{' }}
+    component.isCardPlayable = state !== 'win';
+    component.updateCardVisuals();
+  {{ '}' }}
+)
+export class PlayerCardComponent {{ '{' }}
+  isCardPlayable = true;
+  // Subscriptions automatically managed - no ngOnInit/ngOnDestroy needed!
+  
+  updateCardVisuals() {{ '{' }}
+    // Custom component logic
+  {{ '}' }}
+{{ '}' }}</code></pre>
+
+  <p><strong>How it Works</strong>:</p>
+  <ul>
+    <li>Automatically hooks into Angular lifecycle methods (<code>ngOnInit</code>/<code>ngOnDestroy</code>)</li>
+    <li>Establishes event subscriptions when component initializes</li>
+    <li>Cleans up all subscriptions when component is destroyed</li>
+    <li>Provides type-safe access to component properties within callbacks</li>
+  </ul>
+
+  <p><strong>Example Implementation</strong>: See <a href="src/app/decorators/AutoSubscribeWithCallback.ts"
+      target="_blank"><code>AutoSubscribeWithCallback.ts</code></a> for the decorator source code.</p>
+
+  <h2>🏗️ Architecture Overview</h2>
+
+  <p>The application follows a modular, service-oriented architecture with custom state management and an event-driven
+    communication system.</p>
+
+  <h3>Core Components</h3>
+
+  <ul>
+    <li><strong>GameStore</strong>: Central state management using <code>&#64;StoreState</code> decorator</li>
+    <li><strong>BroadcastService</strong>: Event-driven communication hub</li>
+    <li><strong>CardService</strong>: Card generation, validation, and manipulation</li>
+    <li><strong>ElementalService</strong>: Elemental type logic and win condition checking</li>
+    <li><strong>AiPlayerService</strong>: Simple random card selection (not strategic AI)</li>
+    <li><strong>TimerService</strong>: Round timing and timeout handling</li>
+  </ul>
+
+  <h2>🔄 GameStore Event/Action Infrastructure</h2>
+
+  <p>The GameStore uses a sophisticated event-driven architecture that separates actions from their handlers, providing
+    a clean and maintainable state management solution.</p>
+
+  <h3>Core Events & Actions</h3>
+
+  <h4>Game State Events</h4>
+  <ul>
+    <li><strong><code>updateGameState</code></strong>: Central state transition handler
+      <ul>
+        <li><code>'idle'</code> → Game initialization</li>
+        <li><code>'deal'</code> → Deal cards to players</li>
+        <li><code>'play'</code> → Start new round, begin timer</li>
+        <li><code>'check'</code> → Evaluate round, declare winner</li>
+        <li><code>'finish'</code> → Game completion</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h4>Player Actions</h4>
+  <ul>
+    <li><strong><code>playCard</code></strong>: Handle card selection and validation</li>
+    <li><strong><code>redrawCard</code></strong>: Process card redraw mechanics</li>
+    <li><strong><code>gainRedraw</code></strong>: Award redraw opportunities</li>
+    <li><strong><code>declareRoundWinner</code></strong>: Process round completion</li>
+  </ul>
+
+  <h4>Settings & Configuration</h4>
+  <ul>
+    <li><strong><code>settingsChanged</code></strong>: React to user preference updates</li>
+  </ul>
+
+  <h2>🔒 Data Persistence & Privacy</h2>
+
+  <blockquote>
+    <p><strong>🔒 Complete Privacy</strong>: All data stays on your device. Nothing is transmitted to external servers.
+    </p>
+  </blockquote>
+
+  <p>All user data, settings, and preferences are stored locally using <code>localStorage</code>. The application works
+    completely offline and respects user privacy by never sending data externally.</p>
+
+  <p><strong>What's Stored Locally</strong>:</p>
+  <ul>
+    <li>Player profiles and preferences</li>
+    <li>Game settings and UI configuration</li>
+    <li>No game state persistence between sessions (for fairness)</li>
+  </ul>
+
+  <h2>🛠️ Technical Stack</h2>
+
+  <ul>
+    <li><strong>Framework</strong>: Angular 19 with Standalone Components</li>
+    <li><strong>State Management</strong>: Custom Store Pattern with Reactive Decorators</li>
+    <li><strong>Styling</strong>: SCSS with modular component architecture</li>
+    <li><strong>Build Tool</strong>: Angular CLI with ESBuild</li>
+    <li><strong>Deployment</strong>: Netlify with SSR support</li>
+    <li><strong>Package Manager</strong>: npm</li>
+  </ul>
+
+  <h2>🎯 Key Features</h2>
+
+  <ul>
+    <li><strong>Turn-based Gameplay</strong>: Smooth mechanics with visual feedback and timing systems</li>
+    <li><strong>Computer Opponents</strong>: Simple randomized card selection for single-player experience</li>
+    <li><strong>Card Management</strong>: Dynamic deck building and card redraw mechanics</li>
+    <li><strong>Event-Driven Architecture</strong>: Reactive state management with custom decorators</li>
+    <li><strong>Responsive Design</strong>: Mobile-friendly interface with touch controls</li>
+    <li><strong>Local Persistence</strong>: User preferences saved locally with complete privacy</li>
+    <li><strong>Visual Polish</strong>: Smooth animations and intuitive UI/UX</li>
+  </ul>
+</div>

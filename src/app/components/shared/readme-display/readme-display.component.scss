@@ -1,0 +1,75 @@
+.readme-content {
+  max-width: min(50rem, 95vw);
+  width: 100%;
+  margin: min(2rem, 4vw) auto;
+  padding: min(2rem, 4vw);
+  background: var(--background-secondary--muted);
+  border-radius: .75rem;
+  box-sizing: border-box;
+
+  h1 {
+    border-bottom: 2px solid var(--text-secondary);
+    padding-bottom: .5rem;
+    margin-top: unset;
+    margin-bottom: 1rem;
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+
+  h2 {
+    border-bottom: 1px solid var(--text-secondary);
+    padding-bottom: 0.3rem;
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+
+  h3, h4, h5, h6 {
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+
+  p {
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+
+  code {
+    background: var(--background-primary);
+    padding-inline: .4rem;
+    border-radius: .25rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+  }
+
+  pre {
+    background: var(--background-primary--muted);
+    padding: .5rem min(1.5rem, 3vw);
+    border-radius: .25rem;
+    overflow-x: auto;
+    border-left: 4px solid var(--brand);
+    position: relative;
+    max-width: 100%;
+    box-sizing: border-box;
+
+    code {
+      background: none;
+      padding: 0;
+      color: var(--text-primary);
+      font-size: 0.85em;
+      display: block;
+      white-space: pre;
+      font-family: 'Courier New', monospace;
+      line-height: 1.4;
+      word-break: break-all;
+      overflow-wrap: break-word;
+    }
+  }
+
+  blockquote {
+    border-left: 4px solid var(--brand);
+    padding: 1rem;
+    background: var(--brand--muted);
+    border-radius: 0 .5rem .5rem 0;
+    margin: 1.5rem 0;
+  }
+}

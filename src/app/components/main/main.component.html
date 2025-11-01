@@ -12,6 +12,7 @@
       <playerlist />
     </aside>
   </div>
+  <readme-display />
 </ng-template>
 
 <ng-template #game>
@@ -22,7 +23,7 @@
   <section class="sub-header">
     <!-- Show current player deck at top if preference is 'top' -->
     <player-deck *ngIf="settingsStore.deck.locationPreference === 'top'" />
-    
+
     <!-- Show opponent decks if preference is 'bottom' -->
     <ul class="player-decks" *ngIf="settingsStore.deck.locationPreference === 'bottom'">
       <li *ngFor="let opponent of opponents; trackBy: trackByPlayer">
@@ -43,7 +44,7 @@
   <footer>
     <!-- Show current player deck at bottom if preference is 'bottom' -->
     <player-deck *ngIf="settingsStore.deck.locationPreference === 'bottom'" />
-    
+
     <!-- Show opponent decks if preference is 'top' -->
     <ul class="player-decks" *ngIf="settingsStore.deck.locationPreference === 'top'">
       <li *ngFor="let opponent of opponents; trackBy: trackByPlayer">

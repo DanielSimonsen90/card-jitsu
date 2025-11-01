@@ -11,6 +11,7 @@ import {
   GameTimerComponent, GameCardComponent, 
   PlayerDeckComponent 
 } from '../game/components';
+import { ReadmeDisplayComponent } from '../shared/readme-display';
 import { AutoSubscribeWithCallback } from '@/decorators';
 import { Player } from '@/models/types';
 
@@ -25,6 +26,7 @@ const Logger = LoggerService.createComponentLogger('Main');
   imports: [
     CommonModule,
     PlayerlistComponent,
+    ReadmeDisplayComponent,
 
     GameTimerComponent,
     GameCardComponent, PlayerDeckComponent,
