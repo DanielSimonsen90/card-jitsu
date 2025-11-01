@@ -61,7 +61,14 @@ export default class SettingsStore extends BaseStore<State> {
   }
   public set redraw(value: Partial<Settings['redraw']>) {
     this.updatePartialSetting('redraw', value, () => {
-      if (value.amountOfCards !== undefined) ValidationService.validateWholePositiveNumber(value.amountOfCards, 'Redraw amount of cards');
+      if (value.amountOfCards !== undefined) {
+        ValidationService.validateWholePositiveNumber(value.amountOfCards, 'Redraw amount of cards');
+        ValidationService.throwIfInvalidMinMaxRange(value.amountOfCards, this.deck.size, 'Redraw amount of cards', 'Deck size');
+      }
+
+      if (value.defaultRedraws !== undefined) {
+        ValidationService.validateWholePositiveNumber(value.defaultRedraws, 'Default redraws');
+      }
 
       if (value.gainMethod !== undefined) {
         const validMethods: Array<RedrawGainMethod> = [

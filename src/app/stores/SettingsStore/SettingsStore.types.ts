@@ -18,6 +18,7 @@ export type Settings = {
   };
   redraw: {
     amountOfCards: number;
+    defaultRedraws: number;
     gainMethod: RedrawGainMethod;
   };
 };

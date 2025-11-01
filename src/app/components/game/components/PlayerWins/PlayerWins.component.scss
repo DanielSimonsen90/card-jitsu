@@ -29,6 +29,8 @@ ul.player-wins {
   }
 
   li:has(.element-icon) {
+    display: grid;
+    place-items: center;
     list-style: none;
     padding: .5em;
     border-radius: .5rem;

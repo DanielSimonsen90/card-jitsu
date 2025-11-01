@@ -11,6 +11,7 @@ export default {
   },
   redraw: {
     amountOfCards: 1,
+    defaultRedraws: 0,
     gainMethod: 'round-won'
   },
   roundTimerSeconds: 30,

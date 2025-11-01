@@ -1,5 +1,4 @@
 import AiPlayer from "./AiPlayer";
-import BroadcastService from "../BroadcastService";
 import { ClubPenguinNames } from "./AiPlayerService.constants";
 import { GameStore } from "@/stores";
 import { Player } from "@/models/types";
@@ -7,10 +6,9 @@ import { Player } from "@/models/types";
 export class AiPlayerService {
   private aiPlayers: AiPlayer[] = [];
 
-  public createAiPlayer(gameStore: GameStore, broadcastService: BroadcastService) {
+  public createAiPlayer(gameStore: GameStore) {
     const player = new AiPlayer(
       this.generateAiPlayerName(), 
-      broadcastService, 
       gameStore
     );
     

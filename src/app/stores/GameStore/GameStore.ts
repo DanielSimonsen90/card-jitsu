@@ -16,7 +16,7 @@ import BaseStore from "../BaseStore";
 import UserStore from "../UserStore";
 import SettingsStore from "../SettingsStore";
 
-import { onDeclareRoundWinner, onFinishGame, onPlayCard, onUpdateGameState } from './events';
+import { onDeclareRoundWinner, onFinishGame, onPlayCard, onGainRedraw, onUpdateGameState } from './events';
 
 export const ROUND_END_DELAY_SECONDS = 3;
 
@@ -39,10 +39,7 @@ export class GameStore extends BaseStore<State> {
     protected userStore: UserStore,
     protected settingsStore: SettingsStore,
 
-    protected broadcastService: BroadcastService,
     protected cardService: CardService,
-    protected elementalService: ElementalService,
-    protected timerService: TimerService,
   ) {
     super(storageService, 'Game');
 
@@ -50,6 +47,9 @@ export class GameStore extends BaseStore<State> {
   }
 
   protected aiPlayerService = new AiPlayerService();
+  protected broadcastService = new BroadcastService();
+  protected elementalService = new ElementalService();
+  protected timerService = new TimerService();
 
   // #region Getters & Setters
   public get gameState() {
@@ -147,6 +147,60 @@ export class GameStore extends BaseStore<State> {
       this.__logger.info(`Check returned false - gameState remains "${this.__state.gameState}"`).groupEnd();
     }
   }
+
+  public redraw(player: Player, card: Card) {
+    this.__logger.groupCollapsed('[ACTION] redraw', player, card);
+    if (this.gameState !== 'play') {
+      this.__logger.error('Cannot redraw card when not in play state').groupEnd();
+      throw new Error('Cannot redraw card when not in play state');
+    }
+
+    if (player.availableRedraws <= 0) {
+      this.__logger.error('Player has no available redraws', player).groupEnd();
+      throw new Error('Player has no available redraws');
+    }
+
+    if (player.cards.some(card => card === null)) {
+      this.__logger.error('Player has already played this round and cannot redraw yet', player).groupEnd();
+      throw new Error('Player has already played this round and cannot redraw yet');
+    }
+
+    const previousCards = [...player.cards];
+    player.cards = this.cardService.redrawCard(card, player.cards.filter((c): c is Card => c !== null));
+    player.availableRedraws -= 1;
+
+    this.__logger.info('Updated player state after redraw', player);
+    
+    this.updatePlayer(player);
+
+    this.__logger.info('Broadcasting redrawCard event');
+    this.broadcastService.emit('redrawCard', 
+      player, 
+      player.cards as Array<Card>, 
+      player.cards.find(c => !previousCards.includes(c)) as Card
+    );
+    
+    this.__logger.groupEnd();
+  }
+  public gainRedraw(amount: number, players: Player[]) {
+    this.players = this.players.map(player => {
+      if (!players.includes(player)) return player;
+
+      this.__logger.groupCollapsed('[ACTION] gainRedraw', player, amount);
+
+      const newRedraws = player.availableRedraws + amount;
+      this.__logger.info('Gained redraws', {
+        oldRedraws: player.availableRedraws,
+        newRedraws,
+      }).groupEnd();
+
+      return {
+        ...player,
+        availableRedraws: newRedraws,
+      };
+    });
+  }
+  
   protected resetGame(forceToIdle = false) {
     this.resetPlayers();
     this.__state.lastWinner = null;
@@ -167,6 +221,7 @@ export class GameStore extends BaseStore<State> {
         wins: [],
         activeCard: null,
         cards: [],
+        availableRedraws: this.settingsStore.redraw.defaultRedraws,
         pfp: isAi ? this.aiPlayerService.getAiPlayernameWithoutSuffix(username) : this.selectRandomPfp(),
         isAi,
       }
@@ -236,7 +291,7 @@ export class GameStore extends BaseStore<State> {
   public addAiPlayer() {
     this.__logger.groupCollapsed('[ACTION] addAiPlayer');
 
-    const aiPlayer = this.aiPlayerService.createAiPlayer(this, this.broadcastService);
+    const aiPlayer = this.aiPlayerService.createAiPlayer(this);
     const player = this.addPlayer(aiPlayer.name, true);
     aiPlayer.player = player;
 
@@ -252,6 +307,7 @@ export class GameStore extends BaseStore<State> {
       broadcastService.on('finishGame', onFinishGame(this)),
       broadcastService.on('playCard', onPlayCard(this)),
       broadcastService.on('declareRoundWinner', onDeclareRoundWinner(this)),
+      broadcastService.on('gainRedraw', onGainRedraw(this)),
       broadcastService.on('updateGameState', onUpdateGameState(this))
     ];
     // this.Logger.info('Registered BroadcastEvents', this._subscriptions).groupEnd();

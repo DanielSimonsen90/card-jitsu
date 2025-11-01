@@ -3,6 +3,8 @@ import ElementalService from "../ElementalService";
 import { Card, Color, GameWins } from "./CardService.types";
 import { ElementalType } from "../ElementalService/ElementalService.types";
 import SettingsStore from "@/stores/SettingsStore/SettingsStore";
+import { Broadcast } from "../BroadcastService/BroadcastService.types";
+import BroadcastService from "../BroadcastService";
 
 /**
  * CardService is in charge of generating and dealing cards for the players
@@ -17,11 +19,15 @@ import SettingsStore from "@/stores/SettingsStore/SettingsStore";
 @Injectable()
 export default class CardService {
   constructor(
-    private readonly elementalService: ElementalService,
-    private readonly settingsStore: SettingsStore
-  ) {}
+    private readonly settingsStore: SettingsStore,
+  ) {
+    this.subscribeToRedrawEvents();
+  }
 
   protected readonly colors: Array<Color> = ['red', 'orange', 'yellow', 'green', 'blue', 'purple'];
+  protected readonly elementalService = new ElementalService();
+  private readonly broadcastService = new BroadcastService();
+
 
   // #region Generate card
   public generateCardDeck(): Array<Card> {
@@ -40,6 +46,21 @@ export default class CardService {
       type: this.generateType(),
       color: this.generateColor()
     };
+  }
+
+  /**
+   * Redraws a card from a player's deck
+   * @param card The card to redraw
+   * @param cards The player's current cards
+   * @returns The new set of cards with the redrawn card replaced
+   */
+  public redrawCard(card: Card, cards: Array<Card>): Array<Card> {
+    const cardIndex = cards.indexOf(card);
+    if (cardIndex === -1) throw new Error('RedrawService: Card to redraw not found in player cards');
+
+    cards.splice(cardIndex, 1, this.generateCard());
+
+    return cards;
   }
 
   /**
@@ -121,6 +142,49 @@ export default class CardService {
       a.type === b.type &&
       a.color === b.color
     )
+  }
+
+  private subscribeToRedrawEvents() {
+    const { amountOfCards, gainMethod } = this.settingsStore.redraw;
+    const eventName: keyof Broadcast | null = (() => {
+      switch (gainMethod) {
+        case 'end-of-round': return 'declareRoundWinner';
+        case 'round-lost': return 'declareRoundWinner';
+        case 'round-won': return 'declareRoundWinner';
+
+        case 'end-of-game': return 'finishGame';
+        case 'game-lost': return 'finishGame';
+        case 'game-won': return 'finishGame';
+
+        default: return null;
+      }
+    })();
+
+    if (!eventName) throw new Error(`RedrawService: Unsupported gain method "${gainMethod}"`);
+
+    this.broadcastService.on(eventName, (...args) => {
+      const winner = eventName === 'declareRoundWinner' ? args[1] : eventName === 'finishGame' ? args[0] : undefined;
+      if (!winner || typeof winner !== 'object') return;
+
+      switch (gainMethod) {
+        case 'end-of-round':
+        case 'end-of-game': {
+          this.broadcastService.emit('gainRedraw', amountOfCards, winner, 'all');
+          break;
+        }
+        case 'round-lost':
+        case 'game-lost': {
+          this.broadcastService.emit('gainRedraw', amountOfCards, winner, 'losers');
+          break;
+        }
+        case 'round-won':
+        case 'game-won': {
+          this.broadcastService.emit('gainRedraw', amountOfCards, winner, 'winner');
+          break;
+        }
+        default: throw new Error(`RedrawService: Unsupported gain method "${gainMethod}"`);
+      }
+    });
   }
   // #endregion
 }
