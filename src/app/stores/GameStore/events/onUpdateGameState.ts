@@ -15,7 +15,11 @@ export default CreateEventHandler('updateGameState', function (gameState) {
 
     // All players have picked their active card, and a winner must be determined.
     // Once a winner has been determined, go back to play for another round.
-    case 'check': this.findAndDeclareRoundWinner(); break;
+    case 'check': {
+      this.timerService.stopTimer();
+      this.findAndDeclareRoundWinner(); 
+      break;
+    }
 
     // The game has finished and a winner has been declared
     case 'finish': this.broadcastService.emit('finishGame', this.__state.lastWinner); break;
