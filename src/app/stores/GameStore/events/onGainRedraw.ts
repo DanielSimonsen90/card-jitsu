@@ -1,6 +1,6 @@
 import CreateEventHandler from "./_CreateEventHandler";
 
-export default CreateEventHandler('requestRedraw', function (amount, winner, state) {
+export default CreateEventHandler('gainRedraw', function (amount, winner, state) {
   const players = (() => {
     switch (state) {
       case 'all': return this.players;

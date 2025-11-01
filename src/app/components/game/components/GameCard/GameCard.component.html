@@ -11,5 +11,6 @@
   >
     <img *ngIf="showContent" class="game-card__element-type" src="/assets/cards/{{card.type}}.webp" alt="{{ card.type }}" />
     <p *ngIf="showContent" class="game-card__value">{{ card.value }}</p>
+    <button *ngIf="showRedrawButton" class="game-card__redraw-button secondary" (click)="onRedrawClick($event)">Redraw</button>
   </div>
 </div>

@@ -1,4 +1,4 @@
-import { Component, Input, inject, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { GameCard } from '@/services/CardService/CardService.types';
@@ -20,6 +20,8 @@ import { AutoSubscribeWithCallback } from '@/decorators';
 export class GameCardComponent implements OnInit {
   @Input() public card: GameCard | null = null;
   @Input() public showContent: boolean = false;
+  @Input() public showRedrawButton: boolean = false;
+  @Output() public onRedraw = new EventEmitter<GameCard>();
 
   public isWinner = false;
   protected player: Player | null = null;
@@ -36,5 +38,10 @@ export class GameCardComponent implements OnInit {
   public onClick() {
     if (!this.card || this.card.selected || !this.showContent || !this.player) return;
     this.gameStore.playCard(this.player, this.card);
+  }
+
+  public onRedrawClick(event: Event) {
+    event.stopPropagation();
+    if (this.card) this.onRedraw.emit(this.card);
   }
 }
